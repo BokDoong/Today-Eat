@@ -19,6 +19,14 @@ model User{
   classOf String
   imageURL String?
   phoneNumber String @db.Char(11)
+
+  campersId String
+  campers Campers @relation(fields: [campersId],references: [id])
+
+  reviewLike ReviewLike[]
+  wishList WishList[]
+  refreshToken RefreshToken?
+  review Review[]
 }
 
 model Campers{
@@ -27,12 +35,19 @@ model Campers{
   name String @db.VarChar(10)
   x Float @db.Double
   y Float @db.Double
+
+  universityId String
+  university University @relation(fields: [universityId],references: [id])
+  
+  user User[]
 }
 
 model University{
   id String @id @default(uuid())
 
   name String @db.VarChar(10) @unique
+
+  campers Campers[]
 }
 
 model Store{
@@ -46,6 +61,12 @@ model Store{
   status Status
   x Float @db.Double
   y Float @db.Double
+
+  storeCategory StoreCategory[]
+  wishList WishList[]
+  storeImage StoreImage?
+  keyword Keyword[]
+  review Review[]
 }
 
 enum Status {
@@ -56,5 +77,99 @@ enum Status {
 model Review{
   id String @id @default(uuid())
 
+  content String @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  score Float @db.Double
 
+  storeId String
+  store Store @relation(fields: [storeId],references: [id])
+  userId String
+  user User @relation(fields: [userId],references: [id])
+
+  reviewLike ReviewLike[]
+  reviewImage ReviewImage[]
+  tag Tag[]
+}
+
+model ReviewLike{
+  userId String
+  user User @relation(fields: [userId],references: [id],onUpdate: Cascade,onDelete: Cascade)
+  reviewId String
+  review Review @relation(fields: [reviewId],references: [id],onUpdate: Cascade,onDelete: Cascade) 
+
+  @@id([userId,reviewId])
+}
+
+model Category{
+  id String @id @default(uuid())
+
+  name String @db.VarChar(20)
+
+  storeCategory StoreCategory[]
+}
+
+model StoreCategory{
+  storeId String
+  store Store @relation(fields: [storeId],references: [id],onUpdate: Cascade,onDelete: Cascade)
+  categoryId String
+  category Category @relation(fields: [categoryId],references: [id],onUpdate: Cascade,onDelete: Cascade)
+
+  @@id([storeId,categoryId])
+}
+
+
+model Notice{
+  id String @id @default(uuid())
+
+  title String @db.VarChar(50)
+  content String @db.Text
+}
+
+model WishList{
+  userId String 
+  user User @relation(fields: [userId],references: [id],onUpdate: Cascade,onDelete: Cascade)
+  storeId String
+  store Store @relation(fields: [storeId],references: [id],onUpdate: Cascade,onDelete: Cascade)
+
+  @@id([userId,storeId])
+}
+
+model StoreImage{
+  storeId String @id
+  store Store @relation(fields: [storeId],references: [id],onUpdate: Cascade,onDelete: Cascade)
+}
+
+model ReviewImage{
+  reviewId String
+  review Review @relation(fields: [reviewId],references: [id],onUpdate: Cascade,onDelete: Cascade)
+
+  imageUrl String @db.VarChar(200) @unique
+}
+
+model Keyword{
+  id String @id @default(uuid())
+
+  keyword String @db.VarChar(100)
+  
+  storeId String
+  store Store @relation(fields: [storeId],references: [id],onUpdate: Cascade,onDelete: Cascade)
+}
+
+model Tag{
+  id String @id @default(uuid())
+
+  name String @db.VarChar(50)
+
+  reviewId String
+  review Review @relation(fields: [reviewId],references: [id],onUpdate: Cascade,onDelete: Cascade)
+}
+
+model RefreshToken{
+  id String @id @default(uuid())
+
+  refreshToken String @db.VarChar(200)
+
+  userId String @unique
+  user User @relation(fields: [userId],references: [id],onUpdate: Cascade,onDelete: Cascade) 
 }
