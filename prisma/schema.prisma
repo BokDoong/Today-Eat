@@ -13,10 +13,48 @@ datasource db {
 model User{
   id String @id @default(uuid())
 
-  email String @db.VarChar(200) @unique
+  email String @unique
   password String
-  nickname String @db.VarChar(200) @unique
-  classOf String @db.Char(10)
+  nickname String
+  classOf String
   imageURL String?
   phoneNumber String @db.Char(11)
+}
+
+model Campers{
+  id String @id @default(uuid())
+
+  name String @db.VarChar(10)
+  x Float @db.Double
+  y Float @db.Double
+}
+
+model University{
+  id String @id @default(uuid())
+
+  name String @db.VarChar(10) @unique
+}
+
+model Store{
+  id String @id @default(uuid())
+
+  name String @db.VarChar(100)
+  address String
+  phoneNumber String @db.Char(11)
+  opening_time DateTime
+  closing_time DateTime
+  status Status
+  x Float @db.Double
+  y Float @db.Double
+}
+
+enum Status {
+  OPEN
+  CLOSE
+}
+
+model Review{
+  id String @id @default(uuid())
+
+
 }
