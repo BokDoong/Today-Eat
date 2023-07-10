@@ -23,10 +23,10 @@ model User{
   campersId String
   campers Campers @relation(fields: [campersId],references: [id])
 
-  reviewLike ReviewLike[]
-  wishList WishList[]
+  reviewLikes ReviewLike[]
+  wishLists WishList[]
   refreshToken RefreshToken?
-  review Review[]
+  reviews Review[]
 }
 
 model Campers{
@@ -39,7 +39,8 @@ model Campers{
   universityId String
   university University @relation(fields: [universityId],references: [id])
   
-  user User[]
+  users User[]
+  stores Store[]
 }
 
 model University{
@@ -62,11 +63,15 @@ model Store{
   x Float @db.Double
   y Float @db.Double
 
-  storeCategory StoreCategory[]
-  wishList WishList[]
+  campersId String
+  campers Campers @relation(fields: [campersId], references: [ id])
+  categoryId String
+  category Category @relation(fields: [categoryId], references: [ id])
+
+  wishLists WishList[]
   storeImage StoreImage?
-  keyword Keyword[]
-  review Review[]
+  keywords Keyword[]
+  reviews Review[]
 }
 
 enum Status {
@@ -87,9 +92,9 @@ model Review{
   userId String
   user User @relation(fields: [userId],references: [id])
 
-  reviewLike ReviewLike[]
-  reviewImage ReviewImage[]
-  tag Tag[]
+  reviewLikes ReviewLike[]
+  reviewImages ReviewImage[]
+  tags Tag[]
 }
 
 model ReviewLike{
@@ -106,24 +111,7 @@ model Category{
 
   name String @db.VarChar(20)
 
-  storeCategory StoreCategory[]
-}
-
-model StoreCategory{
-  storeId String
-  store Store @relation(fields: [storeId],references: [id],onUpdate: Cascade,onDelete: Cascade)
-  categoryId String
-  category Category @relation(fields: [categoryId],references: [id],onUpdate: Cascade,onDelete: Cascade)
-
-  @@id([storeId,categoryId])
-}
-
-
-model Notice{
-  id String @id @default(uuid())
-
-  title String @db.VarChar(50)
-  content String @db.Text
+  stores Store[]
 }
 
 model WishList{
@@ -137,14 +125,15 @@ model WishList{
 
 model StoreImage{
   storeId String @id
+
   store Store @relation(fields: [storeId],references: [id],onUpdate: Cascade,onDelete: Cascade)
 }
 
 model ReviewImage{
+  imageUrl String @db.VarChar(200) @unique
+
   reviewId String
   review Review @relation(fields: [reviewId],references: [id],onUpdate: Cascade,onDelete: Cascade)
-
-  imageUrl String @db.VarChar(200) @unique
 }
 
 model Keyword{
@@ -172,4 +161,11 @@ model RefreshToken{
 
   userId String @unique
   user User @relation(fields: [userId],references: [id],onUpdate: Cascade,onDelete: Cascade) 
+}
+
+model Notice{
+  id String @id @default(uuid())
+
+  title String @db.VarChar(50)
+  content String @db.Text
 }
