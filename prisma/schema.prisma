@@ -168,4 +168,5 @@ model Notice{
 
   title String @db.VarChar(50)
   content String @db.Text
+  createdAt DateTime @default(now())
 }

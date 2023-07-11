@@ -17,9 +17,9 @@ import database from "./database";
   app.use(express.urlencoded({ extended: true, limit: "700mb"}));
 
   // Controller Path 매핑
-  //Controllers.forEach((controller) => {
-    //app.use(controller.path, controller.router);
-  //});
+  Controllers.forEach((controller) => {
+    app.use(controller.path, controller.router);
+  });
 
   // Swagger 설정: ~~~/api-docs
   app.get("/swagger.json", (req, res) => {
@@ -32,17 +32,13 @@ import database from "./database";
     res.send("Fighting!!")
   })
 
-  // 에러 미들웨어
+  // 에러처리 핸들러
   app.use((err, req, res, next) => {
     console.log(err);
-
-    // 500번 에러메세지 숨기기
-    if(res.status === 500)
-      res.status(500).json({message: "서버에서 에러가 발생습니다."});
-
+      
     res
-    .status(err.status || 500)
-    .json({message: err.message || "서버에서 에러가 발생했습니다."});
+      .status(err.status || 500)
+      .json({message: err.message || "서버에서 에러가 발생했습니다."});
   })
 
   // Port번호 8000 설정

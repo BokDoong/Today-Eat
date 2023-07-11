@@ -1,4 +1,4 @@
-import defaultSwagger from "./defaultSwagger.js";
+import defaultSwagger from "./defaultSwagger";
 import { Swaggers } from '../models';
 
 // 1) 가공하는 코드
@@ -30,7 +30,6 @@ const { paths } = Object.values(Swaggers).reduce(
 );
 
 // 2) 스웨거에 등록할 json 만들기 defaultSwagger + 1)에서 가공한 paths
-
 export const swaggerDocs = {
   ...defaultSwagger,
   paths,
