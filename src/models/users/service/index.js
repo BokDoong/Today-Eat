@@ -1,17 +1,17 @@
 import database from "../../../database";
-import { NoticeDTO } from "../dto";
+import { NoticesDTO } from "../dto";
 
 export class UserService {
 
 
   // 공지사항 확인
   async getNotice() {
-    const notices = await database.notice.findMany({
+    const notices = await database.notices.findMany({
       orderBy: {
         createdAt: "desc",
       },
     });
 
-    return { notices: notices.map((notice) => new NoticeDTO(notice)) };
+    return { notices: notices.map((notice) => new NoticesDTO(notice)) };
   }
 }

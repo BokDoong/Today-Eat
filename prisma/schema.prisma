@@ -163,10 +163,17 @@ model RefreshToken{
   user User @relation(fields: [userId],references: [id],onUpdate: Cascade,onDelete: Cascade) 
 }
 
-model Notice{
+model Notices{
   id String @id @default(uuid())
 
   title String @db.VarChar(50)
   content String @db.Text
   createdAt DateTime @default(now())
+  type Type
+}
+
+enum Type {
+  NOTICE
+  INQUIRY
+  TERMS
 }
