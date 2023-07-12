@@ -16,9 +16,9 @@ export const getNotice = {
                     type: "object",
                     example: 
                       [
-                        { "title": "추석 이벤트1", "content": "추석맞이 이벤트입니다_1" },
-                        { "title": "추석 이벤트2", "content": "추석맞이 이벤트입니다_2" },
-                        { "title": "추석 이벤트3", "content": "추석맞이 이벤트입니다_3" },
+                        { "id": "1", "title": "추석 이벤트1", "content": "추석맞이 이벤트입니다_1" },
+                        { "id": "1", "title": "추석 이벤트2", "content": "추석맞이 이벤트입니다_2" },
+                        { "id": "1", "title": "추석 이벤트3", "content": "추석맞이 이벤트입니다_3" },
                       ]
                   },
                 },
