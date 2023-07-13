@@ -5,8 +5,11 @@ export class UserService {
 
 
   // 공지사항 확인
-  async getNotice() {
+  async getNotice(typeValue) {
     const notices = await database.notices.findMany({
+      where: {
+        type: typeValue,
+      },
       orderBy: {
         createdAt: "desc",
       },

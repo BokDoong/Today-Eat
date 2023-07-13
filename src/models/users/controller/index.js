@@ -19,7 +19,8 @@ class UserController {
   // 공지사항 확인
   async getNotice(req, res, next) {
     try {
-      const { notices } = await this.userService.getNotice();
+      const type = req.query.type;
+      const { notices } = await this.userService.getNotice(type);
 
       res.status(200).json({ notices });
     } catch (err) {
