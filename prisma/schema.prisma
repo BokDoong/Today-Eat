@@ -27,6 +27,7 @@ model User{
   wishLists WishList[]
   refreshToken RefreshToken?
   reviews Review[]
+  inquirys Inquiry[]
 }
 
 model Inquiry{
@@ -35,9 +36,11 @@ model Inquiry{
   title String @db.VarChar(30)
   content String @db.Text
   status Inquiry_Status
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade) 
   
   inquiryImages InquiryImage[]
-
   inquiryResponse InquiryResponse?
 }
 
