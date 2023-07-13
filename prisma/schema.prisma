@@ -57,12 +57,9 @@ model Store{
   name String @db.VarChar(100)
   address String
   phoneNumber String @db.Char(11)
-  opening_time DateTime
-  closing_time DateTime
-  status Status
   x Float @db.Double
   y Float @db.Double
-
+  distance Float @db.Double
   campersId String
   campers Campers @relation(fields: [campersId], references: [ id])
   categoryId String
@@ -72,11 +69,27 @@ model Store{
   storeImage StoreImage?
   keywords Keyword[]
   reviews Review[]
+  businessHour BusinessHour?
 }
 
-enum Status {
-  OPEN
-  CLOSE
+model BusinessHour{
+  storeId String @unique
+  store Store @relation(fields: [storeId],references: [id]) 
+
+  monOpen DateTime @db.Time()
+  monClose DateTime @db.Time()
+  tueOpen DateTime @db.Time()
+  tueClose DateTime @db.Time()
+  wedOpen DateTime @db.Time()
+  wedClose DateTime @db.Time()
+  thuOpen DateTime @db.Time()
+  thuClose DateTime @db.Time()
+  friOpen DateTime @db.Time()
+  friClose DateTime @db.Time()
+  satOpen DateTime @db.Time()
+  satClose DateTime @db.Time()
+  sunOpen DateTime @db.Time()
+  sunClose DateTime @db.Time()
 }
 
 model Review{
@@ -125,8 +138,9 @@ model WishList{
 
 model StoreImage{
   storeId String @id
-
   store Store @relation(fields: [storeId],references: [id],onUpdate: Cascade,onDelete: Cascade)
+  
+  imageUrl String @db.VarChar(200)
 }
 
 model ReviewImage{
