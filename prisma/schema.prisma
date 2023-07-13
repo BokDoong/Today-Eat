@@ -29,6 +29,42 @@ model User{
   reviews Review[]
 }
 
+model Inquiry{
+  id String @id @default(uuid())
+  
+  title String @db.VarChar(30)
+  content String @db.Text
+  status Inquiry_Status
+  
+  inquiryImages InquiryImage[]
+
+  inquiryResponse InquiryResponse?
+}
+
+// WAITING: 답변대기, DONE: 답변완료
+enum Inquiry_Status {
+  WAITING
+  DONE
+}
+
+model InquiryImage {
+  id String @id @default(uuid())
+
+  imageUrl String @db.LongText
+
+  inquiryId String
+  inquiry Inquiry @relation(fields: [inquiryId], references: [id], onUpdate: Cascade, onDelete: Cascade) 
+}
+
+model InquiryResponse {
+  id String @id @default(uuid())
+
+  content String @db.Text
+
+  inquiryId String @unique
+  inquiry Inquiry @relation(fields: [inquiryId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+}
+
 model Campers{
   id String @id @default(uuid())
 
@@ -137,14 +173,19 @@ model WishList{
 }
 
 model StoreImage{
-  storeId String @id
+  id String @id @default(uuid())
+
+  imageUrl String @db.LongText
+
+  storeId String @unique
   store Store @relation(fields: [storeId],references: [id],onUpdate: Cascade,onDelete: Cascade)
   
-  imageUrl String @db.VarChar(200)
 }
 
 model ReviewImage{
-  imageUrl String @db.VarChar(200) @unique
+  id String @id @default(uuid())
+
+  imageUrl String @db.LongText
 
   reviewId String
   review Review @relation(fields: [reviewId],references: [id],onUpdate: Cascade,onDelete: Cascade)
@@ -181,7 +222,7 @@ model Notices{
   id String @id @default(uuid())
 
   title String @db.VarChar(50)
-  content String @db.Text
+  content String @db.LongText
   createdAt DateTime @default(now())
   type Type
 }
