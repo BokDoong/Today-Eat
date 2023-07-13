@@ -4,7 +4,17 @@ export const getNotice = {
       tags: ["Notice"],
       summary: "공지사항 조회",
       description: "공지사항을 시간순(최근 등록순)으로 조회합니다.",
-      parameter: [],
+      parameters: [
+        {
+          in: "query",
+          name: "type",
+          required: "true",
+          description: "TERMS: 약관, NOTICE: 공지사항, FAQ: FAQ",
+          schema: {
+            type: "string",
+          },
+        }
+      ],
       responses: {
         200: {
           content: {
