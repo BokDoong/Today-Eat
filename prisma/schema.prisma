@@ -15,7 +15,8 @@ model User{
 
   email String @unique
   password String
-  nickname String
+  name String
+  nickname String @unique
   classOf String
   imageURL String?
   phoneNumber String @db.Char(11)
@@ -35,6 +36,7 @@ model Inquiry{
   
   title String @db.VarChar(30)
   content String @db.Text
+  createdAt DateTime @default(now())
   status Inquiry_Status
 
   userId String
