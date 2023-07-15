@@ -5,6 +5,7 @@ import { Controllers } from './models';
 import { swaggerDocs, options } from './swagger';
 import swaggerUi from "swagger-ui-express";
 import database from "./database";
+import { jwtAuth } from './middleware/jwtAuth';
 
 (async() => {
   const app = express();
@@ -15,6 +16,7 @@ import database from "./database";
   app.use(helmet());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true, limit: "700mb"}));
+  app.use(jwtAuth);
 
   // Controller Path 매핑
   Controllers.forEach((controller) => {
