@@ -43,6 +43,7 @@ export class UserService {
     return user;
   }
 
+  // 회원가입
   async createUser(props){
     const newUser = await database.user.create({
       data: {
