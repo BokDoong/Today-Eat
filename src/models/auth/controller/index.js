@@ -5,7 +5,7 @@ import { LoginDTO, RegisterDTO } from "../dto";
 class AuthController {
     authService;
     router;
-    path = "/auth";
+    path = "/api/v1/auth";
 
     constructor() {
         this.router = Router();
