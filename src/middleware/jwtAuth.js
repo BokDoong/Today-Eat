@@ -16,7 +16,7 @@ export const jwtAuth = async (req, res, next) => {
         if (bearers.length === 2 && typeof bearers[1] === "string") {
           const accessToken = bearers[1];
 
-          const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
+          const decoded = jwt.verify(accessToken, process.env.JWT_KEY);
           const user = await database.user.findUnique({
             where: {
               id: decoded.id,

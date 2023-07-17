@@ -3,6 +3,30 @@ import { NoticesDTO } from "../dto";
 
 export class UserService {
 
+  // 문의하기, props: CreateInquiryDTO
+  async createInquiry(props) {
+    const user = await this.findUserById(props.userId);
+
+    const newInquiry = await database.inquiry.create({
+      data: {
+        title: props.title,
+        content: props.content,
+        status: props.status,
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+        inquiryImages: {
+          createMany: {
+            data: props.inquiryImages.map((inquiryImage) => ({ imageUrl: inquiryImage})),
+          },
+        },
+      },
+    });
+
+    return newInquiry.id;
+  }
 
   // 공지사항 확인
   async getNotice(typeValue) {
