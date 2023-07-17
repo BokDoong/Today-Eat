@@ -97,40 +97,43 @@ model Store{
 
   name String @db.VarChar(100)
   address String
-  phoneNumber String @db.Char(11)
+  phoneNumber String @db.VarChar(13)
   x Float @db.Double
   y Float @db.Double
   distance Float @db.Double
+  imageUrl String ?
+  place_id String ?
+  category String
+
   campersId String
   campers Campers @relation(fields: [campersId], references: [ id])
-  categoryId String
-  category Category @relation(fields: [categoryId], references: [ id])
 
   wishLists WishList[]
-  storeImage StoreImage?
   keywords Keyword[]
   reviews Review[]
   businessHour BusinessHour?
+
+  @@unique([name,campersId])
 }
 
 model BusinessHour{
   storeId String @unique
   store Store @relation(fields: [storeId],references: [id]) 
 
-  monOpen DateTime @db.Time()
-  monClose DateTime @db.Time()
-  tueOpen DateTime @db.Time()
-  tueClose DateTime @db.Time()
-  wedOpen DateTime @db.Time()
-  wedClose DateTime @db.Time()
-  thuOpen DateTime @db.Time()
-  thuClose DateTime @db.Time()
-  friOpen DateTime @db.Time()
-  friClose DateTime @db.Time()
-  satOpen DateTime @db.Time()
-  satClose DateTime @db.Time()
-  sunOpen DateTime @db.Time()
-  sunClose DateTime @db.Time()
+  monOpen String
+  monClose String
+  tueOpen String
+  tueClose String
+  wedOpen String
+  wedClose String 
+  thuOpen String
+  thuClose String
+  friOpen String
+  friClose String
+  satOpen String
+  satClose String
+  sunOpen String
+  sunClose String
 }
 
 model Review{
@@ -160,14 +163,6 @@ model ReviewLike{
   @@id([userId,reviewId])
 }
 
-model Category{
-  id String @id @default(uuid())
-
-  name String @db.VarChar(20)
-
-  stores Store[]
-}
-
 model WishList{
   userId String 
   user User @relation(fields: [userId],references: [id],onUpdate: Cascade,onDelete: Cascade)
@@ -175,16 +170,6 @@ model WishList{
   store Store @relation(fields: [storeId],references: [id],onUpdate: Cascade,onDelete: Cascade)
 
   @@id([userId,storeId])
-}
-
-model StoreImage{
-  id String @id @default(uuid())
-
-  imageUrl String @db.LongText
-
-  storeId String @unique
-  store Store @relation(fields: [storeId],references: [id],onUpdate: Cascade,onDelete: Cascade)
-  
 }
 
 model ReviewImage{
