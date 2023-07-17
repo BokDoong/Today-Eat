@@ -1,1 +1,1 @@
-export {};
+export {storeData} from "./storeData";

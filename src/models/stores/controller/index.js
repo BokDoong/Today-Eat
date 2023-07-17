@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { StoreService } from "../service";
+import {storeData} from "../../../utils";
 
 class StoreController{
     router;
@@ -13,18 +14,10 @@ class StoreController{
     }
 
     init(){
-        this.router.get("/:id",this.getDetail.bind(this));  
+        this.router.get("/fetch-store-data",storeData.bind(this));
     }
 
-    async getDetail(req,res,next){
-        try{
-            const {id} = req.params
-
-            const detail = await this.storeService.getDetail(id);
-
-            res.status(200).json({detail});
-        }catch(err){
-            next(err);
-        }
-    }
 }
+
+const storeController = new StoreController();
+export default storeController;
