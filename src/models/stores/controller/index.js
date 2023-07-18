@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { StoreService } from "../service";
-import {storeData} from "../../../utils";
+import {storeData, campersData} from "../../../utils";
 
 class StoreController{
     router;
@@ -14,6 +14,7 @@ class StoreController{
     }
 
     init(){
+        this.router.get("/fetch-campers-data",campersData.bind(this));
         this.router.get("/fetch-store-data",storeData.bind(this));
     }
 
