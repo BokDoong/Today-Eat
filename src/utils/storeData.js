@@ -58,14 +58,14 @@ const getPlaces = async (url,campersId) => {
                     },
                     
                 })
-                await getPlaceId(phoneNumber,store.id);
+                //await getPlaceId(phoneNumber,store.id);
             }catch(err){}
         }
         );
     })
 }
 
-const getPlaceId = async (phone,storeId) => {
+/*const getPlaceId = async (phone,storeId) => {
     const url = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${phone}&inputtype=textquery&key=${process.env.googleKey}`;
     const response = await axios.get(url);
     if(response.data.candidates.length>0){
@@ -183,3 +183,4 @@ const getDetail = async (place_id,storeId) => {
         }
     })
 }
+*/
