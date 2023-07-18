@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { UserService } from "../service";
 import { imageUploader } from "../../../middleware"
-import { CreateInquiryDTO } from "../dto/inquiry/create-inquiry.dto";
+import { CreaetInquiryResponseDTO, CreateInquiryDTO } from "../dto";
 
 class UserController {
   router;
@@ -17,9 +17,10 @@ class UserController {
   init() {
     this.router.get("/notice", this.getNotice.bind(this));
 
-    this.router.post("/inquiry", imageUploader.array('images'), this.createInquiry.bind(this));
     this.router.get("/inquiry/:id", this.getInquiry.bind(this));
     this.router.get("/inquirys", this.getInquirys.bind(this));
+    this.router.post("/inquiry", imageUploader.array('images'), this.createInquiry.bind(this));
+    this.router.post("/inquiry/response", this.createInquiryResponse.bind(this));
   }
 
   // 공지사항 확인
@@ -78,6 +79,27 @@ class UserController {
       const inquiry = await this.userService.getInquiry(id);
 
       res.status(200).json({ inquiry });
+    } catch(err) {
+      next(err);
+    }
+  }
+  
+  // 문의 답변하기
+  async createInquiryResponse(req, res, next) {
+    try {
+      // 권한 확인
+      // if(req.user.authoriy !=== 'ADMIN') throw { status: 403, message: "권한이 없습니다."}
+      const body = req.body;
+
+      const newInquiryResponseId = await this.userService.createInquiryResponse(
+        new CreaetInquiryResponseDTO({
+          content: body.content,
+          inquiryId: body.inquiryId,
+        })
+      );
+
+      res.status(201).json({ id: newInquiryResponseId});
+
     } catch(err) {
       next(err);
     }
