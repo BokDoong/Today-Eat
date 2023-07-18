@@ -5,6 +5,41 @@ import { InquirysDTO } from "../dto/inquiry/inquirys.dto";
 
 export class UserService {
 
+  // 문의 답변하기
+  async createInquiryResponse(props) {
+
+    const inquiry = await database.inquiry.findUnique({
+      where: {
+        id: props.inquiryId,
+      },
+    });
+
+    if(!inquiry) throw { status: 404, message: "문의글을 찾을 수 없습니다."};
+
+    const newInquiryResponse = await database.inquiryResponse.create({
+      data: {
+        content: props.content,
+        inquiry: {
+          connect: {
+            id: inquiry.id,
+          },
+        },
+      },
+    });
+
+    // 상태 변경
+    await database.inquiry.update({
+      where: {
+        id: inquiry.id,
+      },
+      data: {
+        status: 'DONE',
+      },
+    });
+
+    return newInquiryResponse.id;
+  }
+
   // 개별 문의확인
   async getInquiry(id) {
     const inquiry = await database.inquiry.findUnique({
