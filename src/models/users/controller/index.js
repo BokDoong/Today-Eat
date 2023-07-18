@@ -18,6 +18,8 @@ class UserController {
     this.router.get("/notice", this.getNotice.bind(this));
 
     this.router.post("/inquiry", imageUploader.array('images'), this.createInquiry.bind(this));
+    this.router.get("/inquiry/:id", this.getInquiry.bind(this));
+    this.router.get("/inquirys", this.getInquirys.bind(this));
   }
 
   // 공지사항 확인
@@ -51,6 +53,31 @@ class UserController {
 
 
       res.status(201).json({ id: newInquiryId });
+    } catch(err) {
+      next(err);
+    }
+  }
+
+  // 문의 전체조회
+  async getInquirys(req, res, next) {
+    try {
+      const status = req.query.status;
+      const { inquirys } = await this.userService.getInquirys(status);
+
+      res.status(200).json({ inquirys });
+    } catch(err) {
+      next(err);
+    }
+  }
+
+  // 문의 개별조회
+  async getInquiry(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const inquiry = await this.userService.getInquiry(id);
+
+      res.status(200).json({ inquiry });
     } catch(err) {
       next(err);
     }

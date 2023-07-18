@@ -1,7 +1,45 @@
 import database from "../../../database";
 import { NoticesDTO } from "../dto";
+import { InquiryDTO } from "../dto/inquiry/inquiry.dto";
+import { InquirysDTO } from "../dto/inquiry/inquirys.dto";
 
 export class UserService {
+
+  // 개별 문의확인
+  async getInquiry(id) {
+    const inquiry = await database.inquiry.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        inquiryImages: true,
+        inquiryResponse: true,
+      },
+    });
+
+    if(!inquiry) throw { status: 404, message: "문의글을 찾을 수 없습니다." };
+
+    return new InquiryDTO(inquiry);
+  }
+
+  // 전체 문의확인
+  async getInquirys(statusValue) {
+
+    // 쿼리파라미터 검사
+    if (statusValue !== 'WAITING' && statusValue !== 'DONE')
+      throw {status: 404, message: "잘못된 Status 입니다."};
+
+    const inquirys = await database.inquiry.findMany({
+      where: {
+        status: statusValue,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return { inquirys: inquirys.map((inquiry) => new InquirysDTO(inquiry)) }
+  }
 
   // 문의하기, props: CreateInquiryDTO
   async createInquiry(props) {
@@ -30,6 +68,11 @@ export class UserService {
 
   // 공지사항 확인
   async getNotice(typeValue) {
+
+    // 쿼리파라미터 검사
+    if (typeValue !== 'TERMS' && typeValue !== 'FAQ' && typeValue !== 'NOTICE')
+      throw {status: 404, message: "잘못된 Type 입니다."};
+
     const notices = await database.notices.findMany({
       where: {
         type: typeValue,
