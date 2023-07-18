@@ -6,11 +6,12 @@ dotenv.config();
 export const storeData = async (req,res,next) => {
     try{
         const campers = await database.campers.findMany();
-        campers.map(async(data)=>{
+        for(const data of campers){
+            console.log("id : ",data.id," campers : ",data.name);
             const x = data.x;
             const y = data.y;
             const campersId = data.id;
-            console.log(data.name);
+
             for(let i=1;i<4;i++){
                 const url = `https://dapi.kakao.com/v2/local/search/category.json?category_group_code=FD6&radius=20000&x=${x}&y=${y}&size=15&page=${i}&sort=distance`;
                 await getPlaces(url,campersId);
@@ -19,12 +20,14 @@ export const storeData = async (req,res,next) => {
                 const url = `https://dapi.kakao.com/v2/local/search/category.json?category_group_code=FD6&radius=20000&x=${x}&y=${y}&size=15&page=${i}`;
                 await getPlaces(url,campersId);
             }
-        })
+            for(let i=1;i<4;i++){
+                const url = `https://dapi.kakao.com/v2/local/search/category.json?category_group_code=CE7&radius=20000&x=${x}&y=${y}&size=15&page=${i}`;
+                await getPlaces(url,campersId);
+            }
+        }
         res.status(200).send("OK");
     }
-    catch(err){
-        next(err);
-    }
+    catch(err){}
 }
 
 const getPlaces = async (url,campersId) => {
@@ -64,23 +67,19 @@ const getPlaces = async (url,campersId) => {
 
 const getPlaceId = async (phone,storeId) => {
     const url = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${phone}&inputtype=textquery&key=${process.env.googleKey}`;
-    await axios.get(url)
-    .then(async (response)=>{
-        if(response.data.candidates.length>0){
-            const id = response.data.candidates[0].place_id;
-            await database.store.update({
-                where:{
-                    id:storeId,
-                },
-                data:{
-                    place_id:id,
-                }
-            })
-            await getDetail(id,storeId);
-        }
-        }
-        
-    )
+    const response = await axios.get(url);
+    if(response.data.candidates.length>0){
+        const id = response.data.candidates[0].place_id;
+        await database.store.update({
+            where:{
+                id:storeId,
+            },
+            data:{
+                place_id:id,
+            }
+        })
+        await getDetail(id,storeId);
+    }
 }
 
 
@@ -115,15 +114,33 @@ const getDetail = async (place_id,storeId) => {
         
         if(timeText){
             timeText.map((date)=>{
-                const text = date.split(' ')[1];
+                const tmp = date.split(' ');
+                const text = tmp[1];
                 if(text==="Closed"){
                     time.push(["0:00","0:00"]);
                 }
                 else if(text==="Open"){
                     time.push(["0:00", "23:59"]);
                 }
-                else{
+                else if(tmp.length===2){
                     const dividedText = text.split(' – ');
+                    const openClose = dividedText.map((time)=>{
+                        if(time.substring(time.length-2,time.length)==="PM"){
+                            const hour = Number(time.substring(0,time.length-6))+12;
+                            const minute = time.substring(time.length-6,time.length-3);
+                            return hour+minute;
+                        }
+                        else if(time.substring(time.length-2,time.length)==="AM"){
+                            return time.substring(0,time.length-3);
+                        }
+                        else{
+                            return time;
+                        }
+                    });
+                    time.push(openClose);
+                }
+                else if(tmp.length===3){
+                    const dividedText = [text.split(' – ')[0],tmp[2].split(' – ')[1]];
                     const openClose = dividedText.map((time)=>{
                         if(time.substring(time.length-2,time.length)==="PM"){
                             const hour = Number(time.substring(0,time.length-6))+12;
