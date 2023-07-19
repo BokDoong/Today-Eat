@@ -93,7 +93,7 @@ model University{
 }
 
 model Store{
-  id String @id @default(uuid())
+  id String @id @default(uuid()) @unique
 
   name String @db.VarChar(100)
   address String
@@ -109,7 +109,6 @@ model Store{
   campers Campers @relation(fields: [campersId], references: [ id])
 
   wishLists WishList[]
-  keywords Keyword[]
   reviews Review[]
   businessHour BusinessHour?
 
@@ -141,7 +140,7 @@ model Review{
 
   content String @db.Text
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime?
   score Float @db.Double
 
   storeId String
@@ -151,6 +150,7 @@ model Review{
 
   reviewLikes ReviewLike[]
   reviewImages ReviewImage[]
+  keywords Keyword[]
   tags Tag[]
 }
 
@@ -184,10 +184,10 @@ model ReviewImage{
 model Keyword{
   id String @id @default(uuid())
 
-  keyword String @db.VarChar(100)
+  name String @db.VarChar(100)
   
-  storeId String
-  store Store @relation(fields: [storeId],references: [id],onUpdate: Cascade,onDelete: Cascade)
+  reviewId String
+  review Review @relation(fields: [reviewId],references: [id],onUpdate: Cascade,onDelete: Cascade)
 }
 
 model Tag{

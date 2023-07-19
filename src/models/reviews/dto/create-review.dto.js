@@ -1,0 +1,19 @@
+export class CreateReviewDTO{
+    storeId;
+    content;
+    score;
+    images;
+    tags;
+    keywords;
+    userId;
+
+    constructor(props){
+        this.storeId = props.storId;
+        this.userId = props.userId;
+        this.content = props.content;
+        this.score = props.score;
+        this.images = props.images;
+        this.keywords = props.keywords;
+        this.tags = props.tags;
+    }
+}
