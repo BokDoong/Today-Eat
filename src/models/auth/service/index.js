@@ -1,5 +1,7 @@
 import { CreateUserDTO } from "../../users/dto"
 import { UserService } from "../../users/service"
+import { redisClient } from "../../../utils/redis";
+import { smtpTransport } from "../../../utils/email";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
@@ -78,5 +80,31 @@ export class AuthService{
             accessToken: newAccessToken,
             refreshToken: newRefreshToken,
         };
+    }
+    async sendMail(email, authNum) {
+        const mailOptions = {
+            from: "5959kop@naver.com",
+            to: email,
+            subject:"이메일 인증 번호",
+            html: '<h1>인증번호를 입력해주세요</h1>' + authNum
+        }
+        
+        const emailPattern = /@.*ac\.kr$/;
+        const isEmailVaild = emailPattern.test(email);
+        
+        if(!isEmailVaild) throw {status: 404, message: "학교 이메일 형식이 아닙니다."};
+        
+        await smtpTransport.sendMail(mailOptions);
+        await redisClient.set(email, authNum);
+        await redisClient.expire(email, 180);
+        
+    }
+
+    async generateRandomNum(){
+        const min = 1000;
+        const max = 9999;
+
+        const randomNum = Math.floor(Math.random()*(max-min+1)) + min;
+        return randomNum;
     }
 }
