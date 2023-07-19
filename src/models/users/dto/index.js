@@ -1,2 +1,3 @@
+export * from "./inquiry";
 export * from "./notice";
-export * from "./createUser.dto";
+export * from "./create-user.dto";

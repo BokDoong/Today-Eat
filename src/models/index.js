@@ -1,9 +1,8 @@
 import { UserController, UserSwagger } from "./users";
-//import { 컨트롤러명 } from "./auth";
 import { AuthController } from "./auth";
-//import { 컨트롤러명 } from "./stores";
+import { StoreController } from "./stores";
 
-export const Controllers = [UserController, AuthController];
+export const Controllers = [UserController, AuthController, StoreController];
 export const Swaggers = {
   UserSwagger,
 };

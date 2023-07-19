@@ -7,7 +7,7 @@ import { redisClient } from "../../../utils/redis";
 class AuthController {
     authService;
     router;
-    path = "/auth";
+    path = "/api/v1/auth";
 
     constructor() {
         this.router = Router();
