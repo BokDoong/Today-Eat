@@ -89,7 +89,7 @@ export class UserService {
           id: user.id,
         },
         data: {
-          password: props.newPassword,
+          password: await props.hashPassword(),
         },
       });
     } else {
