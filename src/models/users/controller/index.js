@@ -62,8 +62,10 @@ class UserController {
   // 문의 전체조회
   async getInquirys(req, res, next) {
     try {
+      if(!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+
       const status = req.query.status;
-      const { inquirys } = await this.userService.getInquirys(status);
+      const { inquirys } = await this.userService.getInquirys(status, req.user.id);
 
       res.status(200).json({ inquirys });
     } catch(err) {

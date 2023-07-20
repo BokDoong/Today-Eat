@@ -58,7 +58,7 @@ export class UserService {
   }
 
   // 전체 문의확인
-  async getInquirys(statusValue) {
+  async getInquirys(statusValue, userId) {
 
     // 쿼리파라미터 검사
     if (statusValue !== 'WAITING' && statusValue !== 'DONE')
@@ -67,6 +67,7 @@ export class UserService {
     const inquirys = await database.inquiry.findMany({
       where: {
         status: statusValue,
+        userId: userId,
       },
       orderBy: {
         createdAt: "desc",
