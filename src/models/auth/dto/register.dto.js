@@ -34,5 +34,5 @@ export class RegisterDTO{
         );
     
         return hashedPassword;
-      }
+    }
 }

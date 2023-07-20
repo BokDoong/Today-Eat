@@ -1,9 +1,122 @@
+import e from "express";
 import database from "../../../database";
 import { NoticesDTO } from "../dto";
 import { InquiryDTO } from "../dto/inquiry/inquiry.dto";
 import { InquirysDTO } from "../dto/inquiry/inquirys.dto";
 
 export class UserService {
+
+  // 닉네임 수정
+  async updateNickName(newNickName, userId) {
+
+    const user = await database.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if(!user) throw { status: 404, message: "사용자를 찾을 수 없습니다."};
+
+    // 닉네임 중복여부 확인
+    const check = await database.user.findUnique({
+      where: {
+        nickname: newNickName
+      },
+    });
+
+    if(check == null) {
+      await database.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          nickname: newNickName,
+        },
+      });
+    } else {
+      throw { status: 405, message: "중복된 닉네임입니다."};
+    }
+  }
+
+  // 이메일 수정
+  async updateEmail(newEmail, userId) {
+
+    const user = await database.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if(!user) throw { status: 404, message: "사용자를 찾을 수 없습니다."};
+
+    // 이메일 중복여부 확인
+    const check = await database.user.findUnique({
+      where: {
+        email: newEmail
+      },
+    });
+
+    if(check == null) {
+      await database.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          email: newEmail,
+        },
+      });
+    } else {
+      throw { status: 405, message: "중복된 이메일입니다."};
+    }
+  }
+
+  // 비밀번호 수정
+  async updatePassword(props, userId) {
+
+    const user = await database.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if(!user) throw { status: 404, message: "사용자를 찾을 수 없습니다."};
+
+    // 기존의 비밀번호와 같은지 검사
+    const check = await props.comparePassword(user.password);
+    if(check) {
+      await database.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          password: props.newPassword,
+        },
+      });
+    } else {
+      throw { status: 400, message: "기존의 비밀번호와 일치하지 않습니다."};
+    }
+  }
+
+  // 프로필 이미지 변경
+  async updateImage(updateImageUrl, userId) {
+
+    const user = await database.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if(!user) throw { status: 404, message: "사용자를 찾을 수 없습니다."};
+
+    await database.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        imageURL: updateImageUrl,
+      },
+    });
+  }
 
   // 문의 답변하기
   async createInquiryResponse(props) {
@@ -16,6 +129,21 @@ export class UserService {
 
     if(!inquiry) throw { status: 404, message: "문의글을 찾을 수 없습니다."};
 
+    // 이미 있으면 수정
+    if(inquiry.inquiryResponse !== null) {
+      const updatedInquiryResponse = await database.inquiryResponse.update({
+        where: {
+          inquiryId: inquiry.id,
+        },
+        data: {
+          content: props.content,
+        },
+      });
+
+      return updatedInquiryResponse.id;
+    }
+
+    // 답변 생성
     const newInquiryResponse = await database.inquiryResponse.create({
       data: {
         content: props.content,
