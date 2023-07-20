@@ -1,7 +1,7 @@
 import { Router, response } from "express";
 import { AuthService } from "../service";
 import { LoginDTO, RegisterDTO } from "../dto";
-import { redisClient } from "../../../utils/redis";
+import { redisClient } from "../../../utils"
 
 
 class AuthController {
@@ -93,10 +93,8 @@ class AuthController {
         try {
         const { email, authNum } = req.body;
 
-        // Retrieve the stored authentication number from Redis
         await redisClient.get(email, (err, storedAuthNum) => {
             if (err) {
-                console.error("Redis에서 인증번호 가져오기 오류", err);
                 res.status(500).json({ message: "Redis에서 인증번호 가져오기 오류" });
             } else {
                 if (authNum === storedAuthNum) {

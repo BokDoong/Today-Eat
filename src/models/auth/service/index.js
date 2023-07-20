@@ -1,7 +1,6 @@
 import { CreateUserDTO } from "../../users/dto"
 import { UserService } from "../../users/service"
-import { redisClient } from "../../../utils/redis";
-import { smtpTransport } from "../../../utils/email";
+import { redisClient, smtpTransport } from "../../../utils";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
@@ -93,11 +92,9 @@ export class AuthService{
         const isEmailVaild = emailPattern.test(email);
         
         if(!isEmailVaild) throw {status: 404, message: "학교 이메일 형식이 아닙니다."};
-        
         await smtpTransport.sendMail(mailOptions);
         await redisClient.set(email, authNum);
         await redisClient.expire(email, 180);
-        
     }
 
     async generateRandomNum(){
