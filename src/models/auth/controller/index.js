@@ -100,7 +100,7 @@ class AuthController {
                 if (authNum === storedAuthNum) {
                     res.status(200).json({ message: "이메일 인증 성공" });
                 } else {
-                    res.status(200).json({ message: "인증번호가 일치하지 않습니다." });
+                    res.status(404).json({ message: "인증번호가 일치하지 않습니다." });
                 }
             }
         });
