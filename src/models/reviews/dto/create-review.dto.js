@@ -8,7 +8,7 @@ export class CreateReviewDTO{
     userId;
 
     constructor(props){
-        this.storeId = props.storId;
+        this.storeId = props.storeId;
         this.userId = props.userId;
         this.content = props.content;
         this.score = props.score;
