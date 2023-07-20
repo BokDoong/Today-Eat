@@ -2,6 +2,7 @@ import { Router } from "express";
 import { UserService } from "../service";
 import { imageUploader } from "../../../middleware"
 import { CreaetInquiryResponseDTO, CreateInquiryDTO } from "../dto";
+import { UpdatePasswordDTO } from "../dto/update-password.dto";
 
 class UserController {
   router;
@@ -21,6 +22,11 @@ class UserController {
     this.router.get("/inquirys", this.getInquirys.bind(this));
     this.router.post("/inquiry", imageUploader.array('images'), this.createInquiry.bind(this));
     this.router.post("/inquiry/response", this.createInquiryResponse.bind(this));
+    
+    this.router.patch("/nickname", this.updateNickName.bind(this));
+    this.router.patch("/email", this.updateEmail.bind(this));
+    this.router.patch("/profile", imageUploader.single('image'), this.updateImage.bind(this));
+    this.router.patch("/password", this.updatePassword.bind(this));
   }
 
   // 공지사항 확인
@@ -31,6 +37,68 @@ class UserController {
 
       res.status(200).json({ notices });
     } catch (err) {
+      next(err);
+    }
+  }
+
+  // 닉네임 수정
+  async updateNickName(req, res, next) {
+    try { 
+      if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+
+      const body = req.body;
+
+      await this.userService.updateNickName(body.nickname, req.user.id);
+
+      res.status(204).json({ });
+    } catch(err) {
+      next(err);
+    }
+  }
+
+  // 비밀번호 수정
+  async updatePassword(req, res, next) {
+    try {
+      if(!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+
+      const body = req.body;
+
+      await this.userService.updatePassword(new UpdatePasswordDTO(body), req.user.id);
+
+      res.status(204).json({ });
+    } catch(err) {
+      next(err);
+    }
+  }
+
+  // 이메일 수정
+  async updateEmail(req, res, next) {
+    try { 
+      if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+
+      const body = req.body;
+
+      await this.userService.updateEmail(body.email, req.user.id);
+
+      res.status(204).json({ });
+    } catch(err) {
+      next(err);
+    }
+  }
+
+  // 프로필사진 변경
+  async updateImage(req, res, next) {
+    try {
+      if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+
+      // 저장되는 파일의 이름명(key) 갖고오기: '1689548132927'
+      // 저장되는 파일경로: [버킷명].s3.[지역명].amazonaws.com/[req.file.key]
+      const filePath = process.env.AWS_S3_BUCKET + ".s3." + process.env.AWS_S3_REGION + ".amazonaws.com/" + req.file.key;
+      
+      await this.userService.updateImage(filePath, req.user.id);
+
+      res.status(204).json({ });
+    } catch(err) {
       next(err);
     }
   }
@@ -51,7 +119,6 @@ class UserController {
           inquiryImages: filePaths
         })
       );
-
 
       res.status(201).json({ id: newInquiryId });
     } catch(err) {
