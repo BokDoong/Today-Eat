@@ -31,12 +31,18 @@ export class ReviewService{
                 },
                 keywords:{
                     createMany:{
-                        data:props.keywords.map((keyword)=>({name:keyword}))
+                        data:props.keywords.map((keyword)=>({
+                            name:keyword,
+                            storeId:store.id,
+                        })),
                     }
                 },
                 tags:{
                     createMany:{
-                        data:props.tags.map((tag)=>({name:tag}))
+                        data:props.tags.map((tag)=>({
+                            name:tag,
+                            storeId:store.id,
+                        })),
                     }
                 },
                 reviewImages:{
