@@ -23,7 +23,7 @@ class StoreController{
     //랭킹 샘플 조회
     getRankSample = async (req,res,next) => {
         try{
-            const result = await this.storeService.getCards();
+            const result = await this.storeService.getRankSample();
 
             res.status(200).json(result);
         }catch(err){
