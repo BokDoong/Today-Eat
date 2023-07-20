@@ -1,10 +1,50 @@
 import e from "express";
 import database from "../../../database";
-import { NoticesDTO } from "../dto";
+import { NoticesDTO, UserDetailDTO, UserDTO } from "../dto";
 import { InquiryDTO } from "../dto/inquiry/inquiry.dto";
 import { InquirysDTO } from "../dto/inquiry/inquirys.dto";
 
 export class UserService {
+
+  // 회원정보 상세조회
+  async getUserDetail(userId) {
+    const user = await database.user.findUnique({
+      where: {
+        id: userId,
+      },
+      include: {
+        campers: {
+          include: {
+            university: true,
+          },
+        },
+      },
+    });
+
+    if(!user) throw { status: 404, message: "사용자를 찾을 수 없습니다."};
+
+    return new UserDetailDTO(user);
+  }
+
+  // 회원정보 조회
+  async getUser(userId) {
+    const user = await database.user.findUnique({
+      where: {
+        id: userId,
+      },
+      include: {
+        campers: {
+          include: {
+            university: true,
+          },
+        },
+      },
+    });
+
+    if(!user) throw { status: 404, message: "사용자를 찾을 수 없습니다."};
+
+    return new UserDTO(user);
+  }
 
   // 닉네임 수정
   async updateNickName(newNickName, userId) {

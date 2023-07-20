@@ -16,6 +16,9 @@ class UserController {
   }
 
   init() {
+    this.router.get("/", this.getUser.bind(this));
+    this.router.get("/detail", this.getUserDetail.bind(this));
+
     this.router.get("/notice", this.getNotice.bind(this));
 
     this.router.get("/inquiry/:id", this.getInquiry.bind(this));
@@ -27,6 +30,32 @@ class UserController {
     this.router.patch("/email", this.updateEmail.bind(this));
     this.router.patch("/profile", imageUploader.single('image'), this.updateImage.bind(this));
     this.router.patch("/password", this.updatePassword.bind(this));
+  }
+
+  // 내 정보 상세조회
+  async getUserDetail(req, res, next) {
+    try {
+      if(!req.user) throw { stauts: 401, message: "로그인을 진행해주세요."};
+
+      const user = await this.userService.getUserDetail(req.user.id);
+
+      res.status(200).json({ user });
+    } catch(err) {
+      next(err);
+    }
+  }
+
+  // 내 정보 조회
+  async getUser(req, res, next) {
+    try {
+      if(!req.user) throw { stauts: 401, message: "로그인을 진행해주세요."};
+
+      const user = await this.userService.getUser(req.user.id);
+
+      res.status(200).json({ user });
+    } catch(err) {
+      next(err);
+    }
   }
 
   // 공지사항 확인
