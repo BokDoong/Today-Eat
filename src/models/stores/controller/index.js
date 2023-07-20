@@ -21,7 +21,7 @@ class StoreController{
 
 
     //랭킹 샘플 조회
-    getRankingSample = async (req,res,next) => {
+    getRankSample = async (req,res,next) => {
         try{
             const result = await this.storeService.getCards();
 

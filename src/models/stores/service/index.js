@@ -13,7 +13,7 @@ export class StoreService{
         return store;
     }
 
-    async getRankingSample(){
+    async getRankSample(){
         let ranks = [];
         const keywords = ["밥약","분위기","혼밥","단체","술약속"];
 
