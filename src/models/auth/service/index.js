@@ -80,21 +80,21 @@ export class AuthService{
             refreshToken: newRefreshToken,
         };
     }
-    async sendMail(email, authNum) {
+    async sendMail(university_email, authNum) {
         const mailOptions = {
             from: "5959kop@naver.com",
-            to: email,
+            to: university_email,
             subject:"이메일 인증 번호",
             html: '<h1>인증번호를 입력해주세요</h1>' + authNum
         }
         
         const emailPattern = /@.*ac\.kr$/;
-        const isEmailVaild = emailPattern.test(email);
+        const isEmailVaild = emailPattern.test(university_email);
         
         if(!isEmailVaild) throw {status: 404, message: "학교 이메일 형식이 아닙니다."};
         await smtpTransport.sendMail(mailOptions);
-        await redisClient.set(email, authNum);
-        await redisClient.expire(email, 180);
+        await redisClient.set(university_email, authNum);
+        await redisClient.expire(university_email, 180);
     }
 
     async generateRandomNum(){

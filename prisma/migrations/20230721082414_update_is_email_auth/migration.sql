@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `user` MODIFY `isEmailAuth` TINYINT NOT NULL DEFAULT 0;
