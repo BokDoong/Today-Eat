@@ -331,4 +331,26 @@ export class UserService {
     
     return newUser.id;
   }
+
+  //학교 이메일 인증 상태
+  async updateEmailAuthStatus(userId){
+
+    const user = await database.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if(!user) throw {status: 404, message:"사용자를 찾을 수 없습니다."}
+
+    await database.user.update({
+      where: {
+        id:user.id,
+       },
+      data: {
+        isEmailAuth: 1,
+      },
+    });
+    return user.isEmailAuth;
+  }
 }

@@ -8,14 +8,14 @@ export class CreateUserDTO{
     phoneNumber;
     campersId;
 
-    constructor(user){
-        this.email = user.email;
-        this.name = user.name;
-        this.password = user.password;
-        this.nickname = user.nickname;
-        this.classOf = user.classOf;
-        this.imageURL = user.imageURL;
-        this.phoneNumber = user.phoneNumber;
-        this.campersId = user.campersId;
+    constructor(props){
+        this.email = props.email;
+        this.name = props.name;
+        this.password = props.password;
+        this.nickname = props.nickname;
+        this.classOf = props.classOf;
+        this.imageURL = props.imageURL;
+        this.phoneNumber = props.phoneNumber;
+        this.campersId = props.campersId;
     }
 }
