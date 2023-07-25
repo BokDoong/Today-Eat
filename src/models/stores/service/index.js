@@ -1,7 +1,9 @@
 import database from "../../../database";
 import {StoreCardDTO,StoreRankDTO} from "../dto";
+import {reviewService} from "../../reviews/service";
 
-export class StoreService{
+class StoreService{
+
     async findStoreByID(id){
         const store = await database.store.findFirst({
             where:{
@@ -63,8 +65,8 @@ export class StoreService{
                     const status = await this.getStatus(id);
                     const score = await this.getAvgScore(id);
                     const reviewCount = await this.getReviewCount(id);
-                    const image = await this.findReviewImages(id);
-                    const reviewSample = await this.findReviewSample(id);
+                    const image = await reviewService.findReviewImages(id);
+                    const reviewSample = await reviewService.findReviewSample(id);
                     const wishlist = await this.checkWishlist(id);
                     const store = new StoreRankDTO(props,status,score,reviewCount,image,reviewSample,wishlist);
                     return store;
@@ -185,69 +187,6 @@ export class StoreService{
         return data._avg.score;
     }
 
-    async findReviewSample(storeId){
-        const data = await database.review.findFirst({
-            select:{
-                content:true,
-            },
-            where:{
-                storeId:storeId,
-            },
-        });
-        if(!data){
-            return;
-        }
-        return data.content;
-    }
-
-    async getReviewCount(storeId){
-        const data = await database.review.aggregate({
-            where:{
-                storeId:storeId,
-            },
-            _count:{
-                _all:true,
-            }
-        })
-        return data._count._all;
-    }
-
-    async findReviewImages(storeId){
-        const data = await database.review.findMany({
-            where:{
-                storeId:storeId,
-            }
-        });
-        const reviews = data.map((review)=>{
-            return review.id;
-        })
-        let images = await database.reviewImage.findMany({
-            select:{
-                imageUrl:true,
-            },
-            where:{
-                reviewId:{
-                    in:[...reviews],
-                }
-            },
-            take:4,
-        })
-        images = images.map((image)=>{
-            return image.imageUrl;
-        })
-        const count = await database.reviewImage.aggregate({
-            where:{
-                reviewId:{
-                    in:[...reviews],
-                }
-            },
-            _count:{
-                _all:true,
-            }
-        })
-
-        return {imageURLs:images,imageCount:count._count._all};
-    }
 
     async checkWishlist(userId,storeId){
         const data = await database.wishList.findFirst({
@@ -259,9 +198,35 @@ export class StoreService{
         if(!data)return false;
         return true;
     }
+
+    async storeWishlist(userId,storeId,isLike){
+        if(isLike){
+            const data = await database.wishList.create({
+                data:{
+                    store:{
+                        connect:{
+                            id:storeId,
+                        },
+                    },
+                    user:{
+                        connect:{
+                            id:userId,
+                        },
+                    },
+                }
+            })
+            return data;
+        }
+        const data = await database.wishList.delete({
+            where:{
+                userId_storeId:{
+                    storeId:storeId,
+                    userId:userId,
+                }
+            }
+        })
+        return data;
+    }
 }
 
-
-
-//new StoreService().getStatus("02de5389-807a-43fb-8716-a7126ee6ef33");
-new StoreService().getReviewCount("a");
+export const storeService = new StoreService();

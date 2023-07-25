@@ -1,20 +1,18 @@
 import {UserService} from "../../users/service";
-import {StoreService} from "../../stores/service";
+import {storeService} from "../../stores/service";
 import database from "../../../database";
 
-export class ReviewService{
+class ReviewService{
     userService;
     storeService;
     constructor(){
         this.userService = new UserService();
-        this.storeService = new StoreService();
     }
-
 
     //리뷰 작성
     createReview = async (props) => {
         const user = await this.userService.findUserById(props.userId);
-        const store = await this.storeService.findStoreByID(props.storeId);
+        const store = await storeService.findStoreByID(props.storeId);
         const newReview = await database.review.create({
             data:{
                 content:props.content,
@@ -55,4 +53,70 @@ export class ReviewService{
 
         return newReview.id;
     }
+
+    async findReviewSample(storeId){
+        const data = await database.review.findFirst({
+            select:{
+                content:true,
+            },
+            where:{
+                storeId:storeId,
+            },
+        });
+        if(!data){
+            return;
+        }
+        return data.content;
+    }
+
+    async findReviewImages(storeId){
+        const data = await database.review.findMany({
+            where:{
+                storeId:storeId,
+            }
+        });
+        const reviews = data.map((review)=>{
+            return review.id;
+        })
+        let images = await database.reviewImage.findMany({
+            select:{
+                imageUrl:true,
+            },
+            where:{
+                reviewId:{
+                    in:[...reviews],
+                }
+            },
+            take:4,
+        })
+        images = images.map((image)=>{
+            return image.imageUrl;
+        })
+        const count = await database.reviewImage.aggregate({
+            where:{
+                reviewId:{
+                    in:[...reviews],
+                }
+            },
+            _count:{
+                _all:true,
+            }
+        })
+
+        return {imageURLs:images,imageCount:count._count._all};
+    }
+
+    async getReviewCount(storeId){
+        const data = await database.review.aggregate({
+            where:{
+                storeId:storeId,
+            },
+            _count:{
+                _all:true,
+            }
+        })
+        return data._count._all;
+    }
 }
+
+export const reviewService = new ReviewService();
