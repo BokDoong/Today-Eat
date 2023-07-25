@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { ReviewService } from "../service";
+import { reviewService } from "../service";
 import { CreateReviewDTO } from "../dto";
 import {imageUploader} from "../../../middleware";
 
@@ -10,7 +10,7 @@ class ReviewController{
 
     constructor(){
         this.router = new Router();
-        this.reviewService = new ReviewService();
+        this.reviewService = reviewService;
         this.init();
     }
 

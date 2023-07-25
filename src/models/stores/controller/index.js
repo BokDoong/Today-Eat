@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { StoreService } from "../service";
+import { storeService } from "../service";
 import { UserService } from "../../users/service";
 import {storeData, campersData} from "../../../utils";
 
@@ -10,7 +10,7 @@ class StoreController{
 
     constructor(){
         this.router = new Router();
-        this.storeService = new StoreService();
+        this.storeService = storeService;
         this.userService = new UserService();
         this.init();
     }
@@ -20,6 +20,8 @@ class StoreController{
         this.router.get("/fetch-store-data",storeData.bind(this));
         this.router.get("/rank-sample",this.getRankSample.bind(this));
         this.router.get("/rank",this.getRank.bind(this));
+        this.router.post("/wishlist",this.storeWishlist.bind(this));
+        
     }
 
 
@@ -41,6 +43,19 @@ class StoreController{
             const result = await this.storeService.getRank(user.campersId);
             
             res.status(200).json(result);
+        }catch(err){
+            next(err);
+        }
+    }
+
+    storeWishlist = async (req,res,next) => {
+        try{
+            const userId = req.user.id;
+            const storeId = req.body.storeId;
+            const isLike = req.body.isLike;
+            const wishlist = await this.storeService.storeWishlist(userId,storeId,isLike);
+
+            res.status(200).json(wishlist);
         }catch(err){
             next(err);
         }
