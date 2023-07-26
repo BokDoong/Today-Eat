@@ -16,17 +16,24 @@ class StoreService{
     }
 
     //랭킹 샘플 조회
-    async getRankSample(campsersId){
-        const stores = await this.findStoreByCampers(campsersId);
-        
+    async getRankSample(campersId){        
         let ranks = [];
         const keywords = ["밥약","분위기","혼밥","단체","술약속"];
 
         for(const keyword of keywords){
-            const count = await this.getKeywordCount(keyword,stores);
-            ranks.push(count.slice(0,5));
+            const rank = await database.tagRank.findMany({
+                where:{
+                    tag:keyword,
+                    campersId:campersId,
+                },
+                orderBy:{
+                    rank:"asc",
+                },
+                take:5,
+            })
+            const storeIds = rank.map((store)=>store.storeId);
+            ranks.push(storeIds);
         }
-
         let result = [];
         for(let i=0;i<5;i++){
             const data = ranks[i];
@@ -43,17 +50,25 @@ class StoreService{
 
         return result;
     }
-    
+
     //랭킹 조회
-    async getRank(campsersId){
-        const stores = await this.findStoreByCampers(campsersId);
-        
+    async getRank(campersId){
         let ranks = [];
         const keywords = ["밥약","분위기","혼밥","단체","술약속"];
 
         for(const keyword of keywords){
-            const count = await this.getKeywordCount(keyword,stores);
-            ranks.push(count.slice(0,20));
+            const rank = await database.tagRank.findMany({
+                where:{
+                    tag:keyword,
+                    campersId:campersId,
+                },
+                orderBy:{
+                    rank:"asc",
+                },
+                take:20,
+            })
+            const storeIds = rank.map((store)=>store.storeId);
+            ranks.push(storeIds);
         }
 
         let result = [];
@@ -64,7 +79,7 @@ class StoreService{
                     const props = await this.findStoreByID(id);
                     const status = await this.getStatus(id);
                     const score = await this.getAvgScore(id);
-                    const reviewCount = await this.getReviewCount(id);
+                    const reviewCount = await reviewService.getReviewCount(id);
                     const image = await reviewService.findReviewImages(id);
                     const reviewSample = await reviewService.findReviewSample(id);
                     const wishlist = await this.checkWishlist(id);
@@ -226,6 +241,80 @@ class StoreService{
         })
         return data;
     }
+
+    //랭킹 갱신
+    async updateRank(){
+        let first = true;
+        const check = await database.tagRank.findFirst();
+        if(check){
+            first = false;
+        }
+        let campersList = await database.campers.findMany({
+            select:{
+                id:true,
+            }
+        });
+        for(const campers of campersList){
+            const stores = await this.findStoreByCampers(campers.id);
+
+            let ranks = [];
+            const keywords = ["밥약","분위기","혼밥","단체","술약속"];
+
+            for(const keyword of keywords){
+                const count = await this.getKeywordCount(keyword,stores);
+                ranks.push(count.slice(0,20));
+            }  
+            
+            for(let i=0;i<5;i++){
+                const data = ranks[i];
+                for(let j=0;j<data.length;j++){
+                    if(first){
+                        await database.tagRank.create({
+                            data:{
+                                campers:{
+                                    connect:{
+                                        id:campers.id,
+                                    }                                    
+                                },
+                                store:{
+                                    connect:{
+                                        id:data[j],
+                                    },
+                                },
+                                rank:j+1,
+                                tag:keywords[i],
+                            }
+                        })
+                    }else{
+                        await database.tagRank.update({
+                            where:{
+                                tag_rank_campersId:{
+                                    tag:keywords[i],
+                                    rank:j+1,
+                                    campersId:campers.id,
+                                },
+                            },
+                            data:{
+                                campers:{
+                                    connect:{
+                                        id:campers.id,
+                                    }                                    
+                                },
+                                store:{
+                                    connect:{
+                                        id:data[j],
+                                    },
+                                },
+                                rank:j+1,
+                                tag:keywords[i],
+                            }
+                        })
+                    }
+                }
+            }
+        }
+    }
 }
 
 export const storeService = new StoreService();
+

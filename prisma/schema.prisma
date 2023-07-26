@@ -85,6 +85,7 @@ model Campers{
   
   users User[]
   stores Store[]
+  tagRanks TagRank[]
 }
 
 model University{
@@ -116,6 +117,7 @@ model Store{
   keywords Keyword[]
   tags Tag[]
   businessHour BusinessHour?
+  tagRanks TagRank[]
 
   @@unique([name,campersId])
 }
@@ -231,4 +233,17 @@ enum Type {
   NOTICE
   FAQ
   TERMS
+}
+
+model TagRank{
+  tag String
+  rank Int
+  
+  campersId String
+  campers Campers @relation(references: [id],fields: [campersId])
+
+  storeId String
+  store Store @relation(references: [id],fields: [storeId])
+
+  @@id([tag,rank,campersId])
 }
