@@ -6,6 +6,9 @@ import { swaggerDocs, options } from './swagger';
 import swaggerUi from "swagger-ui-express";
 import database from "./database";
 import { jwtAuth } from './middleware/jwtAuth';
+import schedule from "node-schedule";
+import {storeService} from "./models/stores/service";
+import {writeTimeLog} from "./utils"
 
 (async() => {
   const app = express();
@@ -45,6 +48,12 @@ import { jwtAuth } from './middleware/jwtAuth';
 
   // Port번호 8000 설정
   app.listen(8000, () => {
-    console.log("Server's started!!") 
+    console.log("Server's started!!");
+    storeService.updateRank();
+    writeTimeLog();
+    schedule.scheduleJob('0 0 0 * *', () => {
+      storeService.updateRank();
+      writeTimeLog();
+    })
   })
 })();
