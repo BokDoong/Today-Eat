@@ -128,6 +128,35 @@ class ReviewService{
         
     }
 
+    //리뷰 좋아요
+    async reviewLike(userId,reviewId,isLike){
+        if(isLike){
+            await database.reviewLike.create({
+                data:{
+                    review:{
+                        connect:{
+                            id:reviewId,
+                        },
+                    },
+                    user:{
+                        connect:{
+                            id:userId,
+                        },
+                    },
+                }
+            })
+        }else{
+            await database.reviewLike.delete({
+                where:{
+                    userId_reviewId:{
+                        userId:userId,
+                        reviewId,reviewId,
+                    }
+                }
+            })
+        }
+    }
+
     async findReviewSample(storeId){
         const data = await database.review.findFirst({
             select:{
