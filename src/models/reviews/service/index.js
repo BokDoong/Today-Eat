@@ -54,6 +54,80 @@ class ReviewService{
         return newReview.id;
     }
 
+    //리뷰 수정
+    updateReview = async (reviewId, props) => {
+        const user = await this.userService.findUserById(props.userId);
+        const store = await storeService.findStoreByID(props.storeId);
+        await database.reviewImage.deleteMany({
+            where:{
+                reviewId:reviewId,
+            }
+        });
+        const newReview = await database.review.update({
+            where:{
+                id:reviewId,
+            },
+            data:{
+                content:props.content,
+                score:props.score,
+                user:{
+                    connect:{
+                        id:user.id,
+                    }
+                },
+                store:{
+                    connect:{
+                        id:store.id,
+                    },
+                },
+                keywords:{
+                    createMany:{
+                        data:props.keywords.map((keyword)=>({
+                            name:keyword,
+                            storeId:store.id,
+                        })),
+                    }
+                },
+                tags:{
+                    createMany:{
+                        data:props.tags.map((tag)=>({
+                            name:tag,
+                            storeId:store.id,
+                        })),
+                    }
+                },
+                reviewImages:{
+                    createMany:{
+                        data:props.images.map((image)=>({imageUrl:image}))
+                    }
+                }
+            }
+        })
+
+        return newReview.id;
+    }
+
+    //리뷰 삭제
+    async deleteReview(reviewId){
+        const review = await database.review.findUnique({
+            where:{
+                id:reviewId,
+            }
+        });
+        if(!review)throw{status:404,messaga:"리뷰를 찾을 수 없습니다."};
+
+        await database.review.delete({
+            where:{
+                id:review.id
+            },
+            include:{
+                reviewImages:true,
+                reviewLikes:true,
+            }
+        })
+        
+    }
+
     async findReviewSample(storeId){
         const data = await database.review.findFirst({
             select:{

@@ -144,7 +144,6 @@ class StoreService{
             },
         });
         if(!data)return;
-        console.log({storeId},{data});
         const week = [['sunOpen','sunClose'],['monOpen','monClose'],['tueOpen','tueClose'], ['wedOpen','wedClose'],
         ['thuOpen','thuClose'], ['friOpen','friClose'], ['satOpen','satClose']];
         
