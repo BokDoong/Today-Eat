@@ -18,6 +18,7 @@ class ReviewController{
         this.router.post("/",imageUploader.array('images'),this.createReview.bind(this));
         this.router.put("/:id",imageUploader.array('images'),this.updateReview.bind(this));
         this.router.delete("/:id",this.deleteReview.bind(this));
+        this.router.post("/like/:id",this.reviewLike.bind(this));
     }
     
     //리뷰 작성
@@ -76,6 +77,23 @@ class ReviewController{
             await this.reviewService.deleteReview(reviewId);
 
             res.status(200).json();
+        }catch(err){
+            next(err);
+        }
+    }
+
+
+    //리뷰 좋아요
+    reviewLike = async (req,res,next) => {
+        try{
+            if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+            const userId = req.user.id;
+            const reviewId = req.params.id;
+            const { isLike } = req.body;
+
+            await this.reviewService.reviewLike(userId,reviewId,isLike);
+
+            res.status(204).json();
         }catch(err){
             next(err);
         }
