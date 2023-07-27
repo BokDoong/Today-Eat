@@ -1,9 +1,8 @@
 import database from "../../../database";
-import {StoreCardDTO,StoreRankDTO} from "../dto";
+import {StoreCardDTO,StoreCategoryDTO,StoreRankDTO} from "../dto";
 import {reviewService} from "../../reviews/service";
 
 class StoreService{
-
     async findStoreByID(id){
         const store = await database.store.findFirst({
             where:{
@@ -144,12 +143,9 @@ class StoreService{
         const data = await database.store.findMany({
             where:{
                 campersId:campersId,
-            }
+            },
         })
-        const stores = data.map((store)=>{
-            return store.id;
-        })
-        return stores;
+        return data;
     }
 
     async getStatus(storeId){
@@ -242,6 +238,68 @@ class StoreService{
         return data;
     }
 
+    async getRankByStore(storeId){
+        const rank = await database.tagRank.findMany({
+            select:{
+                tag:true,
+                rank:true,
+            },
+            where:{
+                storeId:storeId,
+            }
+        });
+        return rank;
+    }
+
+    //카테고리별 조회
+    async getStoreByCategory(campersId,orderby){
+        const stores = await this.findStoreByCampers(campersId);
+        const categorys = {'한식':[],'중식':[],'양식':[],'일식':[],'분식':[],'아시아':[],'패스트푸드':[],'종합식당':[],'카페/디저트':[],'술집':[]};
+
+        for(const store of stores){
+            const status = await this.getStatus(store.id);
+            const score = await this.getAvgScore(store.id);
+            const reviewCount = await reviewService.getReviewCount(store.id);
+            const reviewSample = await reviewService.findReviewSample(store.id);
+            const isWishlist = await this.checkWishlist(store.id);
+            const rank = await this.getRankByStore(store.id);
+            const dto = new StoreCategoryDTO({...store,status,score,reviewCount,reviewSample,isWishlist,rank});
+            if(store.category=="한식"||store.category=="기사식당"||store.category=="샤브샤브"||store.category=="야식"){
+                categorys['한식'].push(dto);
+            }else if(store.category=="중식"){
+                categorys['중식'].push(dto);
+            }else if(store.category=="양식"||store.category=="패밀리레스토랑"){
+                categorys['양식'].push(dto);
+            }else if(store.category=="일식"||store.category=="퓨전요리"){
+                categorys['일식'].push(dto);
+            }else if(store.category=="분식"){
+                categorys['분식'].push(dto);
+            }else if(store.category=="아시아음식"||store.category=="철판요리"){
+                categorys['아시아'].push(dto);
+            }else if(store.category=="패스트푸드"||store.category=="치킨"||store.category=="도시락"){
+                categorys['패스트푸드'].push(dto);
+            }else if(store.category=="뷔페"||store.category=="푸트코트"){
+                categorys['종합식당'].push(dto);
+            }else if(store.category=="카페"||store.category=="간식"||store.category=="샐러드"){
+                categorys['카페/디저트'].push(dto);
+            }else if(store.category=="술집"){
+                categorys['술집'].push(dto);
+            }
+        }
+        for(let category in categorys){
+            categorys[category] = categorys[category].sort((a,b)=>{
+                if(orderby==="distance"){
+                    return a.distance - b.distance;
+                }else if(orderby==="score"){
+                    return b.score - a.score;
+                }else if(orderby==="reviewCount"){
+                    return b.reviewCount - a.reviewCount;
+                }
+            })
+        }
+        return categorys;         
+    }
+
     //랭킹 갱신
     async updateRank(){
         let first = true;
@@ -256,12 +314,14 @@ class StoreService{
         });
         for(const campers of campersList){
             const stores = await this.findStoreByCampers(campers.id);
-
+            const storeIds = stores.map((store)=>{
+                return store.id;
+            })
             let ranks = [];
             const keywords = ["밥약","분위기","혼밥","단체","술약속"];
 
             for(const keyword of keywords){
-                const count = await this.getKeywordCount(keyword,stores);
+                const count = await this.getKeywordCount(keyword,storeIds);
                 ranks.push(count.slice(0,20));
             }  
             
