@@ -22,7 +22,7 @@ class StoreController{
         this.router.get("/rank",this.getRank.bind(this));
         this.router.post("/wishlist",this.storeWishlist.bind(this));
         this.router.get("/category",this.getStoreByCategory.bind(this));
-        
+        this.router.get("/wishlist",this.getWishlist.bind(this));
     }
 
 
@@ -69,6 +69,16 @@ class StoreController{
             if(!orderby)orderby = "distance";
             const result = await this.storeService.getStoreByCategory(user.campersId,orderby);
             res.status(200).json(result)
+        }catch(err){
+            next(err);
+        }
+    }
+    getWishlist = async (req,res,next) => {
+        try{
+            const user = await this.userService.findUserById(req.user.id);
+            const result = await this.storeService.getWishlist(user.id);
+
+            res.status(200).json(result);
         }catch(err){
             next(err);
         }
