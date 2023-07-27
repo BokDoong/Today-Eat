@@ -1,5 +1,5 @@
 import database from "../../../database";
-import {StoreCardDTO,StoreCategoryDTO,StoreRankDTO} from "../dto";
+import {StoreCardDTO,StoreCategoryDTO,StoreRankDTO, StoreWishlistDTO} from "../dto";
 import {reviewService} from "../../reviews/service";
 
 class StoreService{
@@ -90,6 +90,29 @@ class StoreService{
         }
 
         return result;
+    }
+
+    //찜 목록 조회
+    async getWishlist(userId){
+        const wishlists = await database.wishList.findMany({
+            where:{
+                userId:userId,
+            }
+        });
+        let storeList = [];
+        for(const wishlist of wishlists){
+            const storeId = wishlist.storeId;
+
+            const store = await this.findStoreByID(storeId);
+            const status = await this.getStatus(storeId);
+            const score = await this.getAvgScore(storeId);
+            const reviewCount = await reviewService.getReviewCount(storeId);
+            const reviewSample = await reviewService.findReviewSample(storeId);
+            const rank = await this.getRankByStore(storeId);
+            const dto = new StoreWishlistDTO({...store,status,score,reviewCount,reviewSample,rank});   
+            storeList.push(dto);     
+        }
+        return storeList;
     }
 
     async getKeywordCount(keyword,stores){
