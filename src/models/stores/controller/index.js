@@ -23,6 +23,8 @@ class StoreController{
         this.router.post("/wishlist",this.storeWishlist.bind(this));
         this.router.get("/category",this.getStoreByCategory.bind(this));
         this.router.get("/wishlist",this.getWishlist.bind(this));
+        this.router.post("/map",this.getStoresOnMap.bind(this));
+        this.router.get("/map/:id",this.getStoreOnMap.bind(this));
     }
 
 
@@ -38,6 +40,7 @@ class StoreController{
         }
     }
 
+    //랭킹 조회
     getRank = async (req,res,next) => {
         try{
             const user = await this.userService.findUserById(req.user.id);
@@ -49,6 +52,7 @@ class StoreController{
         }
     }
 
+    //가게 찜하기/찜 해제
     storeWishlist = async (req,res,next) => {
         try{
             const userId = req.user.id;
@@ -62,6 +66,7 @@ class StoreController{
         }
     }
 
+    //카테고리별 가게 조회
     getStoreByCategory = async (req,res,next) => {
         try{
             const user = await this.userService.findUserById(req.user.id);
@@ -73,12 +78,39 @@ class StoreController{
             next(err);
         }
     }
+
+    //찜한 가게 목록 조회
     getWishlist = async (req,res,next) => {
         try{
             const user = await this.userService.findUserById(req.user.id);
             const result = await this.storeService.getWishlist(user.id);
 
             res.status(200).json(result);
+        }catch(err){
+            next(err);
+        }
+    }
+
+    //지도에서 가게목록 조회
+    getStoresOnMap = async (req,res,next) => {
+        try{
+            const user = await this.userService.findUserById(req.user.id);
+            const { distance, keyword, category } = req.body;
+            const stores = await this.storeService.getStoresOnMap(user,distance,keyword,category);
+
+            res.status(200).json(stores);
+        }catch(err){
+            next(err);
+        }
+    }
+
+    //지도에서 가게정보 조회
+    getStoreOnMap = async (req,res,next) => {
+        try{
+            const storeId = req.params.id;
+            const store = await this.storeService.getStoreOnMap(storeId);
+
+            res.status(200).json(store);
         }catch(err){
             next(err);
         }
