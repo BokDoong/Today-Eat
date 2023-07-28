@@ -1,5 +1,5 @@
 import database from "../../../database";
-import {StoreCardDTO,StoreCategoryDTO,StoreDetailMapDTO,StoreMapDTO,StoreRankDTO, StoreWishlistDTO} from "../dto";
+import {StoreCardDTO,StoreCategoryDTO,StoreDetailMapDTO,StoreMapDTO,StoreRankDTO, StoreSearchDTO, StoreWishlistDTO} from "../dto";
 import {reviewService} from "../../reviews/service";
 
 class StoreService{
@@ -88,6 +88,35 @@ class StoreService{
             )
             result.push({stores:[...stores],tag:keywords[i]});
         }
+
+        return result;
+    }
+
+    //가게 검색
+    async searchStore(word,orderby){
+        const stores = await database.store.findMany({
+            where:{
+                name:{
+                    contains:word,
+                }
+            }
+        })
+        let result = await Promise.all(stores.map(async(store)=>{
+            const status = await this.getStatus(store.id);
+            const score = await this.getAvgScore(store.id);
+            const reviewCount = await reviewService.getReviewCount(store.id);
+            return new StoreSearchDTO({...store,status,score,reviewCount});
+        }))
+
+        result = result.sort((a,b)=>{
+            if(orderby==="distance"){
+                return a.distance - b.distance;
+            }else if(orderby==="score"){
+                return b.score - a.score;
+            }else if(orderby==="reviewCount"){
+                return b.reviewCount - a.reviewCount;
+            }
+        })
 
         return result;
     }

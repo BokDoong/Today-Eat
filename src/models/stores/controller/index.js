@@ -25,6 +25,7 @@ class StoreController{
         this.router.get("/wishlist",this.getWishlist.bind(this));
         this.router.post("/map",this.getStoresOnMap.bind(this));
         this.router.get("/map/:id",this.getStoreOnMap.bind(this));
+        this.router.get("/search",this.searchStore.bind(this));
     }
 
 
@@ -111,6 +112,20 @@ class StoreController{
             const store = await this.storeService.getStoreOnMap(storeId);
 
             res.status(200).json(store);
+        }catch(err){
+            next(err);
+        }
+    }
+
+    //가게 검색
+    searchStore = async (req,res,next) => {
+        try{
+            let orderby = req.query.orderby;
+            if(!orderby)orderby = "distance";
+            const searchWord = req.query.keyword;
+            const stores = await this.storeService.searchStore(searchWord,orderby);
+
+            res.status(200).json(stores);
         }catch(err){
             next(err);
         }
