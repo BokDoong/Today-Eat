@@ -314,6 +314,19 @@ export class UserService {
     return user;
   }
 
+  //학교 이메일 확인
+  async checkUserByUniEmail(university_email){
+    const user = await database.user.findUnique({
+      where: {
+        university_email,
+      },
+    });
+
+    if (!user) return false;
+
+    return user;
+  }
+
   // 회원가입
   async createUser(props){
     const newUser = await database.user.create({
@@ -333,7 +346,7 @@ export class UserService {
   }
 
   //학교 이메일 인증 상태
-  async updateEmailAuthStatus(userId){
+  async updateEmailAuthStatus(userId, university_email){
 
     const user = await database.user.findUnique({
       where: {
@@ -349,6 +362,7 @@ export class UserService {
        },
       data: {
         isEmailAuth: 1,
+        university_email:university_email,
       },
     });
     return user.isEmailAuth;
