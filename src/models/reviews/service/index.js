@@ -159,8 +159,8 @@ class ReviewService{
 
     async findReviewSample(storeId){
         const data = await database.review.findFirst({
-            select:{
-                content:true,
+            include:{
+                reviewImages:true,
             },
             where:{
                 storeId:storeId,
@@ -169,7 +169,7 @@ class ReviewService{
         if(!data){
             return;
         }
-        return data.content;
+        return data;
     }
 
     async findReviewImages(storeId){

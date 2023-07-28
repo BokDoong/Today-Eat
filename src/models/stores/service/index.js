@@ -1,5 +1,5 @@
 import database from "../../../database";
-import {StoreCardDTO,StoreCategoryDTO,StoreRankDTO, StoreWishlistDTO} from "../dto";
+import {StoreCardDTO,StoreCategoryDTO,StoreDetailMapDTO,StoreMapDTO,StoreRankDTO, StoreWishlistDTO} from "../dto";
 import {reviewService} from "../../reviews/service";
 
 class StoreService{
@@ -82,7 +82,7 @@ class StoreService{
                     const image = await reviewService.findReviewImages(id);
                     const reviewSample = await reviewService.findReviewSample(id);
                     const wishlist = await this.checkWishlist(id);
-                    const store = new StoreRankDTO(props,status,score,reviewCount,image,reviewSample,wishlist);
+                    const store = new StoreRankDTO(props,status,score,reviewCount,image,reviewSample.content,wishlist);
                     return store;
                 })
             )
@@ -109,7 +109,7 @@ class StoreService{
             const reviewCount = await reviewService.getReviewCount(storeId);
             const reviewSample = await reviewService.findReviewSample(storeId);
             const rank = await this.getRankByStore(storeId);
-            const dto = new StoreWishlistDTO({...store,status,score,reviewCount,reviewSample,rank});   
+            const dto = new StoreWishlistDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,rank});   
             storeList.push(dto);     
         }
         return storeList;
@@ -286,7 +286,7 @@ class StoreService{
             const reviewSample = await reviewService.findReviewSample(store.id);
             const isWishlist = await this.checkWishlist(store.id);
             const rank = await this.getRankByStore(store.id);
-            const dto = new StoreCategoryDTO({...store,status,score,reviewCount,reviewSample,isWishlist,rank});
+            const dto = new StoreCategoryDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,isWishlist,rank});
             if(store.category=="한식"||store.category=="기사식당"||store.category=="샤브샤브"||store.category=="야식"){
                 categorys['한식'].push(dto);
             }else if(store.category=="중식"){
@@ -322,6 +322,55 @@ class StoreService{
         }
         return categorys;         
     }
+
+    //지도에서 가게 목록 조회
+    async getStoresOnMap(user,distance,keyword,category){
+        const userId = user.id;
+        const campersId = user.campersId;
+
+        let stores = await database.store.findMany({
+            select:{
+                id:true,
+                x:true,
+                y:true,
+            },
+            where:{
+                campersId:campersId,
+                distance:{
+                    lte:distance,
+                },
+                keywords:{
+                    some:{
+                        name:{
+                            in:keyword,
+                        }
+                    }
+                },
+                category:{
+                    in:category,
+                }
+            }
+        })
+
+        stores = Promise.all(stores.map(async (store)=>{
+            const isWishlist = await this.checkWishlist(userId,store.id);
+            return new StoreMapDTO({...store, isWishlist});
+        }))
+
+        return stores;
+    }
+
+    async getStoreOnMap(storeId){
+        const store = await this.findStoreByID(storeId);
+        const status = await this.getStatus(storeId);
+        const score = await this.getAvgScore(storeId);
+        const reviewCount = await reviewService.getReviewCount(storeId);
+        const reviewSample = await reviewService.findReviewSample(storeId);
+        const rank = await this.getRankByStore(storeId);
+        const dto = new StoreDetailMapDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,reviewImage:reviewSample.reviewImages[0],rank});   
+        return dto;
+    }
+
 
     //랭킹 갱신
     async updateRank(){
@@ -400,4 +449,3 @@ class StoreService{
 }
 
 export const storeService = new StoreService();
-
