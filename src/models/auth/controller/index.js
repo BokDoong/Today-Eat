@@ -21,6 +21,7 @@ class AuthController {
     init() {
         this.router.post("/register", imageUploader.single('image'), this.register.bind(this));
         this.router.post("/login", this.login.bind(this));
+        this.router.post("/logout", this.logout.bind(this));
         this.router.post("/refresh",this.refresh.bind(this));
         this.router.post("/email",this.emailSend.bind(this));
         this.router.post("/email-auth", this.emailAuth.bind(this));
@@ -71,6 +72,18 @@ class AuthController {
               });
 
         } catch (err) {
+            next(err);
+        }
+    }
+
+    async logout(req, res, next) {
+        try{
+            const body = req.body;
+
+            await this.authService.logout(req.user.email, body.accessToken);
+
+            res.status(200).json({message:"logout 성공"});
+        } catch(err) {
             next(err);
         }
     }

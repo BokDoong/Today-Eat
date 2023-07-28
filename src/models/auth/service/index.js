@@ -27,12 +27,16 @@ export class AuthService{
         );
         
         const accessToken = jwt.sign({ id: newUserId }, process.env.JWT_KEY,{
+
             expiresIn:"2h",
         });
         const refreshToken = jwt.sign({ id: newUserId }, process.env.JWT_KEY,{
             expiresIn:"14d",
         });
         console.log({ accessToken, refreshToken });
+
+        await redisClient.set(newUserId, refreshToken);
+        await redisClient.expire(newUserId, 60 * 60 * 24 * 14);
 
         return { accessToken, refreshToken };
     }
@@ -52,9 +56,23 @@ export class AuthService{
         const refreshToken = jwt.sign({ id: emailExist.id }, process.env.JWT_KEY,{
             expiresIn:"14d",
         });
+        
+        await redisClient.set(emailExist.id, refreshToken);
+        await redisClient.expire(emailExist.id, 60 * 60 * 24 * 14);
 
-        return { accessToken, refreshToken};
+        return { accessToken, refreshToken };
     }
+
+    async logout(email, accessToken) {
+        const emailExist = await this.userService.checkUserByEmail(email);
+        const expiration = await this.getExpiration(accessToken);
+
+        console.log(expiration);
+        await redisClient.del(emailExist.id);
+        await redisClient.set(accessToken, "logout");
+        await redisClient.expire(accessToken, expiration);
+    }
+
 
     async refresh(accessToken, refreshToken) {
         const accessTokenPayload = jwt.verify(accessToken, process.env.JWT_KEY,{
@@ -87,11 +105,16 @@ export class AuthService{
             subject:"이메일 인증 번호",
             html: '<h1>인증번호를 입력해주세요</h1>' + authNum
         }
+
+        const emailExist = await this.userService.checkUserByUniEmail(university_email);
+        
+        if(emailExist) throw { status: 400, message: "이미 가입되어있는 이메일 입니다."};
         
         const emailPattern = /@.*ac\.kr$/;
         const isEmailVaild = emailPattern.test(university_email);
         
         if(!isEmailVaild) throw {status: 404, message: "학교 이메일 형식이 아닙니다."};
+
         await smtpTransport.sendMail(mailOptions);
         await redisClient.set(university_email, authNum);
         await redisClient.expire(university_email, 180);
@@ -103,5 +126,24 @@ export class AuthService{
 
         const randomNum = Math.floor(Math.random()*(max-min+1)) + min;
         return randomNum;
+    }
+
+    async getExpiration(accessToken){
+        try {
+            const decodedToken = jwt.verify(accessToken, process.env.JWT_KEY);
+            const now = Math.floor(Date.now() / 1000);
+        
+            if (decodedToken.exp) {
+
+                const remainingTime = decodedToken.exp - now;
+                return remainingTime;
+            } else {
+                throw new Error('Token has no "exp" claim');
+            }
+
+        } catch(err){
+            console.log("Error", err.message);
+            throw err;
+        }
     }
 }
