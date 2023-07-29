@@ -1,5 +1,5 @@
 import database from "../../../database";
-import {StoreCardDTO,StoreCategoryDTO,StoreDetailMapDTO,StoreMapDTO,StoreRankDTO, StoreRecommendDTO, StoreSearchDTO, StoreWishlistDTO} from "../dto";
+import {StoreCardDTO,StoreCategoryDTO,StoreDetailMapDTO,StoreMapDTO,StoreRankDTO, StoreRecommendDTO, StoreReviewedDTO, StoreSearchDTO, StoreWishlistDTO} from "../dto";
 import {reviewService} from "../../reviews/service";
 
 class StoreService{
@@ -15,7 +15,9 @@ class StoreService{
     }
 
     //랭킹 샘플 조회
-    async getRankSample(campersId){        
+    async getRankSample(user){        
+        const userId = user.id;
+        const campersId = user.campersId;
         let ranks = [];
         const keywords = ["밥약","분위기","혼밥","단체","술약속"];
 
@@ -40,7 +42,8 @@ class StoreService{
                 data.map(async (id)=>{
                     const props = await this.findStoreByID(id);
                     const tags = (await this.findTagByStore(id)).slice(0,3);
-                    const store = new StoreCardDTO(props,tags);
+                    const isWishlist = await this.checkWishlist(userId,id);
+                    const store = new StoreCardDTO({...props,tags,isWishlist});
                     return store;
                 })
             )
@@ -51,7 +54,7 @@ class StoreService{
     }
 
     //랭킹 조회
-    async getRank(campersId){
+    async getRank(userId,campersId){
         let ranks = [];
         const keywords = ["밥약","분위기","혼밥","단체","술약속"];
 
@@ -81,7 +84,7 @@ class StoreService{
                     const reviewCount = await reviewService.getReviewCount(id);
                     const image = await reviewService.findReviewImages(id);
                     const reviewSample = await reviewService.findReviewSample(id);
-                    const wishlist = await this.checkWishlist(id);
+                    const wishlist = await this.checkWishlist(userId,id);
                     const store = new StoreRankDTO(props,status,score,reviewCount,image,reviewSample.content,wishlist);
                     return store;
                 })
@@ -304,7 +307,9 @@ class StoreService{
     }
 
     //카테고리별 조회
-    async getStoreByCategory(campersId,orderby){
+    async getStoreByCategory(user,orderby){
+        const userId= user.id;
+        const campersId = user.campersId;
         const stores = await this.findStoreByCampers(campersId);
         const categorys = {'한식':[],'중식':[],'양식':[],'일식':[],'분식':[],'아시아':[],'패스트푸드':[],'종합식당':[],'카페/디저트':[],'술집':[]};
 
@@ -428,6 +433,28 @@ class StoreService{
         return details;
     }
 
+    //리뷰 작성한 가게 목록
+    async getReviewedStore(userId){
+        const reviews = (await reviewService.findReviewByUser(userId));
+        let storeIds = reviews.map((review)=>{
+            return review.storeId;
+        })
+        storeIds = new Set(storeIds);
+        storeIds = [...storeIds].slice(0,5);
+
+        const details = await Promise.all(storeIds.map(async(storeId)=>{
+            const store = await this.findStoreByID(storeId);
+            const status = await this.getStatus(storeId);
+            const score = await this.getAvgScore(storeId);
+            const reviewCount = await reviewService.getReviewCount(storeId);
+            const reviewSample = await reviewService.findReviewSample(storeId);
+            const rank = await this.getRankByStore(storeId);    
+            const isWishlist = await this.checkWishlist(userId,storeId);
+            return new StoreReviewedDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,rank,isWishlist})
+        }))
+
+        return details;
+    }
 
     //랭킹 갱신
     async updateRank(){

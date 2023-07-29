@@ -20,6 +20,8 @@ class ReviewController{
         this.router.delete("/:id",this.deleteReview.bind(this));
         
         this.router.post("/like/:id",this.reviewLike.bind(this));
+
+        this.router.get("/myReview",this.getMyReview.bind(this));
     }
     
     //리뷰 작성
@@ -95,6 +97,19 @@ class ReviewController{
             await this.reviewService.reviewLike(userId,reviewId,isLike);
 
             res.status(204).json();
+        }catch(err){
+            next(err);
+        }
+    }
+
+    //내가 쓴 리뷰 조회
+    getMyReview = async (req,res,next) => {
+        try{
+            if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+
+            const reviews = await this.reviewService.getMyReview(req.user.id);
+
+            res.status(200).json(reviews);
         }catch(err){
             next(err);
         }
