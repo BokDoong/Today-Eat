@@ -1,5 +1,5 @@
 import database from "../../../database";
-import {StoreCardDTO,StoreCategoryDTO,StoreDetailMapDTO,StoreMapDTO,StoreRankDTO, StoreSearchDTO, StoreWishlistDTO} from "../dto";
+import {StoreCardDTO,StoreCategoryDTO,StoreDetailMapDTO,StoreMapDTO,StoreRankDTO, StoreRecommendDTO, StoreSearchDTO, StoreWishlistDTO} from "../dto";
 import {reviewService} from "../../reviews/service";
 
 class StoreService{
@@ -398,6 +398,34 @@ class StoreService{
         const rank = await this.getRankByStore(storeId);
         const dto = new StoreDetailMapDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,reviewImage:reviewSample.reviewImages[0],rank});   
         return dto;
+    }
+
+    //가게 추천
+    async recommendStore(campersId){
+        const storeCount = await database.store.count();
+        let stores = new Array();
+        let storeIds = new Set();
+        while(stores.length<5){
+            const random = Math.floor(Math.random() * storeCount);
+            const store = await database.store.findFirst({
+                where:{
+                    campersId:campersId,
+                },
+                skip:random
+            });
+            if(storeIds.has(store.id))continue;
+            stores.push(store);
+            storeIds.add(store.id);
+        }
+
+        const details = await Promise.all(stores.map(async(store)=>{
+            const status = await this.getStatus(store.id);
+            const score = await this.getAvgScore(store.id);
+            const reviewCount = await reviewService.getReviewCount(store.id);
+            return new StoreRecommendDTO({...store,status,score,reviewCount});
+        })) 
+
+        return details;
     }
 
 
