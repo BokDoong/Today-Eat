@@ -31,6 +31,8 @@ class StoreController{
 
         this.router.post("/map",this.getStoresOnMap.bind(this));
         this.router.get("/map/:id",this.getStoreOnMap.bind(this));
+
+        this.router.get("/reviewed",this.getReviewedStores.bind(this));
     }
 
 
@@ -38,7 +40,7 @@ class StoreController{
     getRankSample = async (req,res,next) => {
         try{
             const user = await this.userService.findUserById(req.user.id);
-            const result = await this.storeService.getRankSample(user.campersId);
+            const result = await this.storeService.getRankSample(user);
             
             res.status(200).json(result);
         }catch(err){
@@ -50,7 +52,7 @@ class StoreController{
     getRank = async (req,res,next) => {
         try{
             const user = await this.userService.findUserById(req.user.id);
-            const result = await this.storeService.getRank(user.campersId);
+            const result = await this.storeService.getRank(user.id,user.campersId);
             
             res.status(200).json(result);
         }catch(err){
@@ -78,7 +80,7 @@ class StoreController{
             const user = await this.userService.findUserById(req.user.id);
             let {orderby} = req.query;
             if(!orderby)orderby = "distance";
-            const result = await this.storeService.getStoreByCategory(user.campersId,orderby);
+            const result = await this.storeService.getStoreByCategory(user,orderby);
             res.status(200).json(result)
         }catch(err){
             next(err);
@@ -145,6 +147,17 @@ class StoreController{
             res.status(200).json(result);
         }catch(err){
 
+        }
+    }
+
+    //리뷰 작성한 가게 목록
+    getReviewedStores = async (req,res,next) => {
+        try{
+            const stores = await this.storeService.getReviewedStore(req.user.id);
+
+            res.status(200).json(stores);
+        }catch(err){
+            next(err);
         }
     }
 }

@@ -220,6 +220,19 @@ class ReviewService{
         })
         return data._count._all;
     }
+
+    async findReviewByUser(userId){
+        const reviews = await database.review.findMany({
+            where:{
+                userId:userId,
+            },
+            orderBy:{
+                createdAt:"asc"
+            }
+        });
+
+        return reviews;
+    }
 }
 
 export const reviewService = new ReviewService();
