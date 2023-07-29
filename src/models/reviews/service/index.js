@@ -1,6 +1,7 @@
 import {UserService} from "../../users/service";
 import {storeService} from "../../stores/service";
 import database from "../../../database";
+import { MyReviewDTO } from "../dto";
 
 class ReviewService{
     userService;
@@ -232,6 +233,42 @@ class ReviewService{
         });
 
         return reviews;
+    }
+
+    async findTagByReview(reviewId){
+        const tags = await database.tag.findMany({
+            where:{
+                reviewId:reviewId,
+            }
+        });
+        return tags;
+    }
+
+    async findLikeByReview(reviewId){
+        const likes = await database.reviewLike.findMany({
+            where:{
+                reviewId:reviewId,
+            }
+        })
+
+        return likes;
+    }
+
+    async getMyReview(userId){
+        const days = ['일','월','화','수','목','금','토'];
+        const reviews = await this.findReviewByUser(userId);
+        const details = await Promise.all(reviews.map(async(review)=>{
+            let tags = await this.findTagByReview(review.id);
+            tags = await Promise.all(tags.map((tag)=>{
+                return tag.name;
+            }));
+            const likeCount = (await this.findLikeByReview(review.id)).length;
+            const createdDate = (review.createdAt.getMonth()+1)+"."+review.createdAt.getDate()+"."+days[review.createdAt.getDay()];
+            const userName = (await this.userService.findUserById(userId)).name;
+            return new MyReviewDTO({...review,tags,likeCount,createdDate,userName});
+        }))
+
+        return details;
     }
 }
 
