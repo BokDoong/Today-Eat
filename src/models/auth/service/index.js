@@ -1,4 +1,5 @@
 import database from "../../../database";
+import bcrypt from "bcrypt";
 import { CreateUserDTO } from "../../users/dto"
 import { UserService } from "../../users/service"
 import { redisClient, smtpTransport } from "../../../utils";
@@ -100,7 +101,7 @@ export class AuthService{
         };
     }
 
-    async deleteUser(userId){
+    async deleteUser(userId) {
         const user = await database.user.findUnique({
             where: {
               id: userId,
@@ -112,6 +113,38 @@ export class AuthService{
                 id:user.id
             }
         });
+    }
+
+    async passwordReset(email) {
+
+        const randomPasswd = Math.random().toString(36).slice(2);
+
+        const hashedPassword = await bcrypt.hash(
+            randomPasswd,
+            Number(process.env.PASSWORD_SALT),
+          );
+
+        const mailOptions = {
+            from: "5959kop@naver.com",
+            to: email,
+            subject:"임시 비밀번호 발급",
+            html: '<h1>임시 비밀번호 입니다. 해당 비밀번호로 로그인 후 비밀번호를 변경해 주세요.</h1>' + randomPasswd
+        }
+
+        const emailExist = await this.userService.checkUserByEmail(email);
+
+        if(!emailExist) throw { status:"404", message:"해당 사용자를 찾을 수 없습니다."};
+
+        await smtpTransport.sendMail(mailOptions);
+        await database.user.update({
+            where: {
+                email: emailExist.email,
+            },
+            data: {
+                password: hashedPassword,
+            },
+        });
+        
     }
 
     async sendMail(university_email, authNum) {
