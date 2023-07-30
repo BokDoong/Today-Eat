@@ -153,7 +153,7 @@ model Review{
   storeId String
   store Store @relation(fields: [storeId],references: [id])
   userId String
-  user User @relation(fields: [userId],references: [id])
+  user User @relation(fields: [userId],references: [id], onUpdate: Cascade, onDelete: Cascade)
 
   reviewLikes ReviewLike[]
   reviewImages ReviewImage[]

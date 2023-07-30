@@ -25,6 +25,7 @@ class AuthController {
         this.router.post("/refresh",this.refresh.bind(this));
         this.router.post("/email",this.emailSend.bind(this));
         this.router.post("/email-auth", this.emailAuth.bind(this));
+        this.router.post("/delete-user", this.deleteUser.bind(this));
     }
 
     async register(req, res, next) {
@@ -138,6 +139,18 @@ class AuthController {
     } catch (err) {
         next(err);
     }
+    }
+
+    async deleteUser(req, res, next) {
+        try{
+            if(!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+            
+            await this.authService.deleteUser(req.user.id);
+
+            res.status(200).json({message: "회원 탈퇴 성공" });
+        } catch(err) {
+            next(err);
+        }
     }
 }
 

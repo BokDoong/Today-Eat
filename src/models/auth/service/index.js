@@ -1,3 +1,4 @@
+import database from "../../../database";
 import { CreateUserDTO } from "../../users/dto"
 import { UserService } from "../../users/service"
 import { redisClient, smtpTransport } from "../../../utils";
@@ -98,6 +99,21 @@ export class AuthService{
             refreshToken: newRefreshToken,
         };
     }
+
+    async deleteUser(userId){
+        const user = await database.user.findUnique({
+            where: {
+              id: userId,
+            },
+          });
+        
+        await database.user.delete({
+            where:{
+                id:user.id
+            }
+        });
+    }
+
     async sendMail(university_email, authNum) {
         const mailOptions = {
             from: "5959kop@naver.com",
