@@ -26,8 +26,10 @@ class AuthController {
         this.router.post("/email",this.emailSend.bind(this));
         this.router.post("/email-auth", this.emailAuth.bind(this));
         this.router.post("/delete-user", this.deleteUser.bind(this));
+        this.router.post("/password-reset", this.passwordReset.bind(this));
     }
 
+    // 회원가입
     async register(req, res, next) {
         try{
             // const body = req.body;
@@ -59,6 +61,7 @@ class AuthController {
         }
     }
 
+    // 로그인
     async login(req, res, next) {
         try{
             const body = req.body;
@@ -77,6 +80,7 @@ class AuthController {
         }
     }
 
+    // 로그아웃
     async logout(req, res, next) {
         try{
             const body = req.body;
@@ -89,6 +93,7 @@ class AuthController {
         }
     }
 
+    // 토큰 재발급
     async refresh(req, res, next){
         try{
             const body = req.body;
@@ -107,6 +112,7 @@ class AuthController {
         }
     }
     
+    // 이메일 전송
     async emailSend(req, res, next){
         try{
             const authNum = await this.authService.generateRandomNum();
@@ -120,6 +126,7 @@ class AuthController {
         }
     }
 
+    // 이메일 인증
     async emailAuth(req, res, next){
         try {
             const { university_email, authNum } = req.body;
@@ -141,6 +148,7 @@ class AuthController {
     }
     }
 
+    // 회원탈퇴
     async deleteUser(req, res, next) {
         try{
             if(!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
@@ -148,6 +156,19 @@ class AuthController {
             await this.authService.deleteUser(req.user.id);
 
             res.status(200).json({message: "회원 탈퇴 성공" });
+        } catch(err) {
+            next(err);
+        }
+    }
+
+    async passwordReset(req, res, next) {
+        try{
+            const { email } = req.body;
+
+            await this.authService.passwordReset(email);
+
+            res.status(200).json({message:"성공"});
+
         } catch(err) {
             next(err);
         }
