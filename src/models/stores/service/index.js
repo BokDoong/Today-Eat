@@ -358,7 +358,7 @@ class StoreService{
     }
 
     //지도에서 가게 목록 조회
-    async getStoresOnMap(user,distance,keyword,category){
+    async getStoresOnMap(user,distance,keyword,category,isOpen){
         const userId = user.id;
         const campersId = user.campersId;
 
@@ -386,12 +386,20 @@ class StoreService{
             }
         })
 
-        stores = Promise.all(stores.map(async (store)=>{
+        let details = [];
+        await Promise.all(stores.map(async (store)=>{
             const isWishlist = await this.checkWishlist(userId,store.id);
-            return new StoreMapDTO({...store, isWishlist});
+
+            if(isOpen){
+                const status = await this.getStatus(store.id);
+                if(!status){
+                    return;
+                }
+            }    
+            details.push(new StoreMapDTO({...store, isWishlist}));
         }))
 
-        return stores;
+        return details;
     }
 
     async getStoreOnMap(storeId){
