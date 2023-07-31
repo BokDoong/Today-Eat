@@ -32,48 +32,43 @@ class StoreService{
             for(let i=0;i<5;i++){
                 const data = ranks[i];
                 for(let j=0;j<data.length;j++){
-                    if(first){
-                        await database.tagRank.create({
-                            data:{
-                                campers:{
-                                    connect:{
-                                        id:campers.id,
-                                    }                                    
-                                },
-                                store:{
-                                    connect:{
-                                        id:data[j],
-                                    },
-                                },
-                                rank:j+1,
+                    await database.tagRank.upsert({
+                        where:{
+                            tag_rank_campersId:{
                                 tag:keywords[i],
-                            }
-                        })
-                    }else{
-                        await database.tagRank.update({
-                            where:{
-                                tag_rank_campersId:{
-                                    tag:keywords[i],
-                                    rank:j+1,
-                                    campersId:campers.id,
+                                rank:j+1,
+                                campersId:campers.id,
+                            },
+                        },
+                        update:{
+                            campers:{
+                                connect:{
+                                    id:campers.id,
+                                }                                    
+                            },
+                            store:{
+                                connect:{
+                                    id:data[j],
                                 },
                             },
-                            data:{
-                                campers:{
-                                    connect:{
-                                        id:campers.id,
-                                    }                                    
+                            rank:j+1,
+                            tag:keywords[i],
+                        },
+                        create:{
+                            campers:{
+                                connect:{
+                                    id:campers.id,
+                                }                                    
+                            },
+                            store:{
+                                connect:{
+                                    id:data[j],
                                 },
-                                store:{
-                                    connect:{
-                                        id:data[j],
-                                    },
-                                },
-                                rank:j+1,
-                                tag:keywords[i],
-                            }
-                        })
-                    }
+                            },
+                            rank:j+1,
+                            tag:keywords[i],
+                        }
+                    })
                 }
             }
         }
@@ -109,7 +104,8 @@ class StoreService{
                     const tags = Object.keys((await this.findTagByStore(id))).slice(0,3);
                     const isWishlist = await this.checkWishlist(userId,id);
                     const category = await this.changeCategory(props.category);
-                    const store = new StoreCardDTO({...props,tags,isWishlist,category:category});
+                    const time = await this.convertDistanceToTime(props.distance);
+                    const store = new StoreCardDTO({...props,tags,isWishlist,category,time});
                     return store;
                 })
             )
@@ -151,7 +147,8 @@ class StoreService{
                     const reviewSample = await reviewService.findReviewSample(id);
                     const wishlist = await this.checkWishlist(userId,id);
                     const category = await this.changeCategory(props.category);
-                    const store = new StoreRankDTO({...props,status,score,reviewCount,reviewSample:reviewSample.content,wishlist,category:category});
+                    const time = await this.convertDistanceToTime(props.distance);
+                    const store = new StoreRankDTO({...props,status,score,reviewCount,reviewSample:reviewSample.content,wishlist,category,time});
                     return store;
                 })
             )
@@ -176,8 +173,9 @@ class StoreService{
             const score = await this.getAvgScore(store.id);
             const reviewCount = await reviewService.getReviewCount(store.id);
             const category = await this.changeCategory(store.category);
+            const time = await this.convertDistanceToTime(store.distance);
 
-            return new StoreSearchDTO({...store,status,score,reviewCount,category});
+            return new StoreSearchDTO({...store,status,score,reviewCount,category,time});
         }))
 
         result = result.sort((a,b)=>{
@@ -211,7 +209,8 @@ class StoreService{
             const reviewCount = await reviewService.getReviewCount(storeId);
             const reviewSample = await reviewService.findReviewSample(storeId);
             const rank = await this.getRankByStore(storeId);
-            const dto = new StoreWishlistDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,rank,category:category});   
+            const time = await this.convertDistanceToTime(store.distance);
+            const dto = new StoreWishlistDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,rank,category,time});   
             storeList.push(dto);     
         }
         return storeList;
@@ -261,7 +260,8 @@ class StoreService{
             const reviewSample = await reviewService.findReviewSample(store.id);
             const isWishlist = await this.checkWishlist(store.id);
             const rank = await this.getRankByStore(store.id);
-            const dto = new StoreCategoryDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,isWishlist,rank});
+            const time = await this.convertDistanceToTime(store.distance);
+            const dto = new StoreCategoryDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,isWishlist,rank,time});
             
             categorys[await this.changeCategory(store.category)].push(dto);
         }
@@ -283,31 +283,55 @@ class StoreService{
     async getStoresOnMap(user,distance,keyword,category,isOpen){
         const userId = user.id;
         const campersId = user.campersId;
+        const dst = distance+200;
 
-        let stores = await database.store.findMany({
-            select:{
-                id:true,
-                x:true,
-                y:true,
-            },
-            where:{
-                campersId:campersId,
-                distance:{
-                    lte:distance,
+        let stores
+        if(!distance){
+            stores = await database.store.findMany({
+                select:{
+                    id:true,
+                    x:true,
+                    y:true,
                 },
-                keywords:{
-                    some:{
-                        name:{
-                            in:keyword,
+                where:{
+                    campersId:campersId,
+                    keywords:{
+                        some:{
+                            name:{
+                                in:keyword,
+                            }
                         }
+                    },
+                    category:{
+                        in:category,
                     }
-                },
-                category:{
-                    in:category,
                 }
-            }
-        })
-
+            })
+        }else{
+            stores = await database.store.findMany({
+                select:{
+                    id:true,
+                    x:true,
+                    y:true,
+                },
+                where:{
+                    campersId:campersId,
+                    distance:{
+                        lte:dst,
+                    },
+                    keywords:{
+                        some:{
+                            name:{
+                                in:keyword,
+                            }
+                        }
+                    },
+                    category:{
+                        in:category,
+                    }
+                }
+            })
+        }
         let details = [];
         await Promise.all(stores.map(async (store)=>{
             const isWishlist = await this.checkWishlist(userId,store.id);
@@ -333,7 +357,8 @@ class StoreService{
         const reviewCount = await reviewService.getReviewCount(storeId);
         const reviewSample = await reviewService.findReviewSample(storeId);
         const rank = await this.getRankByStore(storeId);
-        const dto = new StoreDetailMapDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,reviewImage:reviewSample.reviewImages[0],rank,category:category});   
+        const time = await this.convertDistanceToTime(store.distance);
+        const dto = new StoreDetailMapDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,reviewImage:reviewSample.reviewImages[0],rank,category,time});   
         return dto;
     }
 
@@ -360,7 +385,9 @@ class StoreService{
             const score = await this.getAvgScore(store.id);
             const reviewCount = await reviewService.getReviewCount(store.id);
             const category = await this.changeCategory(store.category);
-            return new StoreRecommendDTO({...store,status,score,reviewCount,category:category});
+            const time = await this.convertDistanceToTime(store.distance);
+
+            return new StoreRecommendDTO({...store,status,score,reviewCount,category,time});
         })) 
 
         return details;
@@ -384,7 +411,9 @@ class StoreService{
             const rank = await this.getRankByStore(storeId);    
             const isWishlist = await this.checkWishlist(userId,storeId);
             const category = await this.changeCategory(store.category);
-            return new StoreReviewedDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,rank,isWishlist,category:category})
+            const time = await this.convertDistanceToTime(store.distance);
+
+            return new StoreReviewedDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,rank,isWishlist,category,time})
         }))
 
         return details;
@@ -395,6 +424,7 @@ class StoreService{
         const store = await this.findStoreByID(storeId);
         const category = await this.changeCategory(store.category);
         const status = await this.getStatus(storeId);
+        const distance = await this.convertDistanceToTime(props.distance);
 
         const days = ['sunClose','monClose','tueClose','wedClose','thuClose','friClose','satClose'];
         const today = days[new Date().getDay()];
@@ -404,13 +434,28 @@ class StoreService{
         const keywords = await this.getRankByStore(storeId);
         const tags = await this.findTagByStore(storeId);
 
-        return new StoreDetailDTO({...store,status,closeTime,keywords,tags,category:category});
+        return new StoreDetailDTO({...store,status,closeTime,keywords,tags,category,distance});
     }
 
 
     /*-----------------------------------------------------------------------------------------------------*/
     /*-----------------------------------------------------------------------------------------------------*/
 
+
+    async convertDistanceToTime(distance){
+        const dst = distance - 200;
+        if(dst<=100){
+            return "2분";
+        }else if(dst<=300){
+            return "5분";
+        }else if(dst<=500){
+            return "7분";
+        }else if(dst<=700){
+            return "10분";
+        }else{
+            return "10분+";
+        }
+    }
 
     async getBussinessHourByStore(storeId){
         const time = await database.businessHour.findUnique({
