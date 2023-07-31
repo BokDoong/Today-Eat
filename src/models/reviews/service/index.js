@@ -10,28 +10,26 @@ class ReviewService{
     }
 
     //리뷰 작성
-    createReview = async (props) => {
-        const user = await this.userService.findUserById(props.userId);
-        const store = await storeService.findStoreByID(props.storeId);
+    createReview = async (userId,props) => {
         const newReview = await database.review.create({
             data:{
                 content:props.content,
                 score:props.score,
                 user:{
                     connect:{
-                        id:user.id,
+                        id:userId,
                     }
                 },
                 store:{
                     connect:{
-                        id:store.id,
+                        id:props.storeId,
                     },
                 },
                 keywords:{
                     createMany:{
                         data:props.keywords.map((keyword)=>({
                             name:keyword,
-                            storeId:store.id,
+                            storeId:props.storeId
                         })),
                     }
                 },
@@ -39,7 +37,7 @@ class ReviewService{
                     createMany:{
                         data:props.tags.map((tag)=>({
                             name:tag,
-                            storeId:store.id,
+                            storeId:props.storeId,
                         })),
                     }
                 },
@@ -55,14 +53,16 @@ class ReviewService{
     }
 
     //리뷰 수정
-    updateReview = async (reviewId, props) => {
-        const user = await this.userService.findUserById(props.userId);
-        const store = await storeService.findStoreByID(props.storeId);
+    updateReview = async (userId, reviewId, props) => {
+        const oldReview = await this.findReviewById(reviewId);
+        if(oldReview.userId!==userId) throw{status:403,message:"권한이 없습니다"};
+
         await database.reviewImage.deleteMany({
             where:{
                 reviewId:reviewId,
             }
         });
+
         const newReview = await database.review.update({
             where:{
                 id:reviewId,
@@ -70,21 +70,11 @@ class ReviewService{
             data:{
                 content:props.content,
                 score:props.score,
-                user:{
-                    connect:{
-                        id:user.id,
-                    }
-                },
-                store:{
-                    connect:{
-                        id:store.id,
-                    },
-                },
                 keywords:{
                     createMany:{
                         data:props.keywords.map((keyword)=>({
                             name:keyword,
-                            storeId:store.id,
+                            storeId:oldReview.storeId,
                         })),
                     }
                 },
@@ -92,7 +82,7 @@ class ReviewService{
                     createMany:{
                         data:props.tags.map((tag)=>({
                             name:tag,
-                            storeId:store.id,
+                            storeId:oldReview.storeId,
                         })),
                     }
                 },
@@ -108,13 +98,15 @@ class ReviewService{
     }
 
     //리뷰 삭제
-    async deleteReview(reviewId){
+    async deleteReview(userId,reviewId){
         const review = await database.review.findUnique({
             where:{
                 id:reviewId,
             }
         });
-        if(!review)throw{status:404,messaga:"리뷰를 찾을 수 없습니다."};
+
+        if(!review) throw{status:404,message:"리뷰를 찾을 수 없습니다."};
+        if(review.userId!==userId) throw{status:403,message:"권한이 없습니다."};
 
         await database.review.delete({
             where:{
@@ -255,6 +247,15 @@ class ReviewService{
     /*-----------------------------------------------------------------------------------------------------*/
     /*-----------------------------------------------------------------------------------------------------*/
 
+
+    async findReviewById(reviewId){
+        const review = await database.review.findUnique({
+            where:{
+                id:reviewId,
+            }
+        })
+        return review;
+    }
 
     async findReviewSample(storeId){
         const data = await database.review.findFirst({
