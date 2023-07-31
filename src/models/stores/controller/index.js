@@ -106,8 +106,8 @@ class StoreController{
     getStoresOnMap = async (req,res,next) => {
         try{
             const user = await this.userService.findUserById(req.user.id);
-            const { distance, keyword, category } = req.body;
-            const stores = await this.storeService.getStoresOnMap(user,distance,keyword,category);
+            const { distance, keyword, category, isOpen } = req.body;
+            const stores = await this.storeService.getStoresOnMap(user,distance,keyword,category,isOpen);
 
             res.status(200).json(stores);
         }catch(err){
