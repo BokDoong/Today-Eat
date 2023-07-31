@@ -19,20 +19,23 @@ class StoreController{
         this.router.get("/fetch-campers-data",campersData.bind(this));
         this.router.get("/fetch-store-data",storeData.bind(this));
 
+        
         this.router.get("/rank-sample",this.getRankSample.bind(this));
         this.router.get("/rank",this.getRank.bind(this));
         this.router.get("/category",this.getStoreByCategory.bind(this));
-
+        
         this.router.get("/search",this.searchStore.bind(this));
         this.router.get("/recommend",this.recommendStore.bind(this));
-
+        
         this.router.get("/wishlist",this.getWishlist.bind(this));
         this.router.post("/wishlist",this.storeWishlist.bind(this));
-
+        
         this.router.post("/map",this.getStoresOnMap.bind(this));
         this.router.get("/map/:id",this.getStoreOnMap.bind(this));
-
+        
         this.router.get("/reviewed",this.getReviewedStores.bind(this));
+        
+        this.router.get("/:id",this.getStoreDetail.bind(this));
     }
 
 
@@ -156,6 +159,18 @@ class StoreController{
             const stores = await this.storeService.getReviewedStore(req.user.id);
 
             res.status(200).json(stores);
+        }catch(err){
+            next(err);
+        }
+    }
+
+    //가게 상세 페이지
+    getStoreDetail = async (req,res,next) => {
+        try{
+            const storeId = req.params.id;
+            const detail = await this.storeService.getStoreDetail(storeId);
+
+            res.status(200).json(detail);
         }catch(err){
             next(err);
         }
