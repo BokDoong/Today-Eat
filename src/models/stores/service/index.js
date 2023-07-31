@@ -97,12 +97,13 @@ class StoreService{
     }
 
     //가게 검색
-    async searchStore(word,orderby){
+    async searchStore(campersId,word,orderby){
         const stores = await database.store.findMany({
             where:{
                 name:{
                     contains:word,
-                }
+                },
+                campersId:campersId,
             }
         })
         let result = await Promise.all(stores.map(async(store)=>{

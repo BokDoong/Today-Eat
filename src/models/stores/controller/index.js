@@ -130,10 +130,11 @@ class StoreController{
     //가게 검색
     searchStore = async (req,res,next) => {
         try{
+            const user = await this.userService.findUserById(req.user.id);
             let orderby = req.query.orderby;
             if(!orderby)orderby = "distance";
             const searchWord = req.query.keyword;
-            const stores = await this.storeService.searchStore(searchWord,orderby);
+            const stores = await this.storeService.searchStore(user.campersId,searchWord,orderby);
 
             res.status(200).json(stores);
         }catch(err){
