@@ -6,23 +6,22 @@ export class StoreRankDTO{
     status;
     score;
     reviewCount;
-    imageURLs;
+    imageURL;
     imageCount;
     reviewSample;
     wishlist;
 
-    constructor(props,status,score,reviewCount,image,reviewSample,wishlist) {
+    constructor(props) {
         this.id = props.id;
         this.name = props.name;
-        this.category = props.name;
+        this.category = props.category;
         this.time = (props.distance*0.014).toFixed();
-        this.status = status;
-        this.score = score;
-        this.reviewCount = reviewCount;
-        this.imageURLs = image.imageURLs;
-        this.imageCount = image.imageCount;
-        this.reviewSample = reviewSample;
-        this.wishlist = wishlist;
+        this.status = props.status;
+        this.score = props.score;
+        this.reviewCount = props.reviewCount;
+        this.imageURL = props.imageUrl;
+        this.reviewSample = props.reviewSample;
+        this.wishlist = props.wishlist;
     }
     
 }

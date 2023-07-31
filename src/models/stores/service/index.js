@@ -43,7 +43,8 @@ class StoreService{
                     const props = await this.findStoreByID(id);
                     const tags = Object.keys((await this.findTagByStore(id))).slice(0,3);
                     const isWishlist = await this.checkWishlist(userId,id);
-                    const store = new StoreCardDTO({...props,tags,isWishlist});
+                    const category = await this.changeCategory(props.category);
+                    const store = new StoreCardDTO({...props,tags,isWishlist,category:category});
                     return store;
                 })
             )
@@ -82,10 +83,10 @@ class StoreService{
                     const status = await this.getStatus(id);
                     const score = await this.getAvgScore(id);
                     const reviewCount = await reviewService.getReviewCount(id);
-                    const image = await reviewService.findReviewImages(id);
                     const reviewSample = await reviewService.findReviewSample(id);
                     const wishlist = await this.checkWishlist(userId,id);
-                    const store = new StoreRankDTO(props,status,score,reviewCount,image,reviewSample.content,wishlist);
+                    const category = await this.changeCategory(props.category);
+                    const store = new StoreRankDTO({...props,status,score,reviewCount,reviewSample:reviewSample.content,wishlist,category:category});
                     return store;
                 })
             )
@@ -108,7 +109,9 @@ class StoreService{
             const status = await this.getStatus(store.id);
             const score = await this.getAvgScore(store.id);
             const reviewCount = await reviewService.getReviewCount(store.id);
-            return new StoreSearchDTO({...store,status,score,reviewCount});
+            const category = await this.changeCategory(store.category);
+
+            return new StoreSearchDTO({...store,status,score,reviewCount,category});
         }))
 
         result = result.sort((a,b)=>{
@@ -136,12 +139,13 @@ class StoreService{
             const storeId = wishlist.storeId;
 
             const store = await this.findStoreByID(storeId);
+            const category = await this.changeCategory(store.category);
             const status = await this.getStatus(storeId);
             const score = await this.getAvgScore(storeId);
             const reviewCount = await reviewService.getReviewCount(storeId);
             const reviewSample = await reviewService.findReviewSample(storeId);
             const rank = await this.getRankByStore(storeId);
-            const dto = new StoreWishlistDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,rank});   
+            const dto = new StoreWishlistDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,rank,category:category});   
             storeList.push(dto);     
         }
         return storeList;
@@ -306,6 +310,30 @@ class StoreService{
         return rank;
     }
 
+    async changeCategory(category){
+        if(category=="한식"||category=="기사식당"||category=="샤브샤브"||category=="야식"){
+            return '한식';
+        }else if(category=="중식"){
+            return '중식';
+        }else if(category=="양식"||category=="패밀리레스토랑"){
+            return '양식';
+        }else if(category=="일식"||category=="퓨전요리"){
+            return '일식';
+        }else if(category=="분식"){
+            return '분식';
+        }else if(category=="아시아음식"||category=="철판요리"){
+            return '아시아';
+        }else if(category=="패스트푸드"||category=="치킨"||category=="도시락"){
+            return '패스트푸드';
+        }else if(category=="뷔페"||category=="푸트코트"){
+            return '종합식당';
+        }else if(category=="카페"||category=="간식"||category=="샐러드"){
+            return '카페/디저트';
+        }else if(category=="술집"){
+            return '술집';
+        }
+    }
+
     //카테고리별 조회
     async getStoreByCategory(user,orderby){
         const userId= user.id;
@@ -321,27 +349,8 @@ class StoreService{
             const isWishlist = await this.checkWishlist(store.id);
             const rank = await this.getRankByStore(store.id);
             const dto = new StoreCategoryDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,isWishlist,rank});
-            if(store.category=="한식"||store.category=="기사식당"||store.category=="샤브샤브"||store.category=="야식"){
-                categorys['한식'].push(dto);
-            }else if(store.category=="중식"){
-                categorys['중식'].push(dto);
-            }else if(store.category=="양식"||store.category=="패밀리레스토랑"){
-                categorys['양식'].push(dto);
-            }else if(store.category=="일식"||store.category=="퓨전요리"){
-                categorys['일식'].push(dto);
-            }else if(store.category=="분식"){
-                categorys['분식'].push(dto);
-            }else if(store.category=="아시아음식"||store.category=="철판요리"){
-                categorys['아시아'].push(dto);
-            }else if(store.category=="패스트푸드"||store.category=="치킨"||store.category=="도시락"){
-                categorys['패스트푸드'].push(dto);
-            }else if(store.category=="뷔페"||store.category=="푸트코트"){
-                categorys['종합식당'].push(dto);
-            }else if(store.category=="카페"||store.category=="간식"||store.category=="샐러드"){
-                categorys['카페/디저트'].push(dto);
-            }else if(store.category=="술집"){
-                categorys['술집'].push(dto);
-            }
+            
+            categorys[await this.changeCategory(store.category)].push(dto);
         }
         for(let category in categorys){
             categorys[category] = categorys[category].sort((a,b)=>{
@@ -404,12 +413,13 @@ class StoreService{
 
     async getStoreOnMap(storeId){
         const store = await this.findStoreByID(storeId);
+        const category = await this.changeCategory(store.category);
         const status = await this.getStatus(storeId);
         const score = await this.getAvgScore(storeId);
         const reviewCount = await reviewService.getReviewCount(storeId);
         const reviewSample = await reviewService.findReviewSample(storeId);
         const rank = await this.getRankByStore(storeId);
-        const dto = new StoreDetailMapDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,reviewImage:reviewSample.reviewImages[0],rank});   
+        const dto = new StoreDetailMapDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,reviewImage:reviewSample.reviewImages[0],rank,category:category});   
         return dto;
     }
 
@@ -435,7 +445,8 @@ class StoreService{
             const status = await this.getStatus(store.id);
             const score = await this.getAvgScore(store.id);
             const reviewCount = await reviewService.getReviewCount(store.id);
-            return new StoreRecommendDTO({...store,status,score,reviewCount});
+            const category = await this.changeCategory(store.category);
+            return new StoreRecommendDTO({...store,status,score,reviewCount,category:category});
         })) 
 
         return details;
@@ -458,7 +469,8 @@ class StoreService{
             const reviewSample = await reviewService.findReviewSample(storeId);
             const rank = await this.getRankByStore(storeId);    
             const isWishlist = await this.checkWishlist(userId,storeId);
-            return new StoreReviewedDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,rank,isWishlist})
+            const category = await this.changeCategory(store.category);
+            return new StoreReviewedDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,rank,isWishlist,category:category})
         }))
 
         return details;
@@ -467,6 +479,7 @@ class StoreService{
     //가게 상세페이지
     async getStoreDetail(storeId){
         const store = await this.findStoreByID(storeId);
+        const category = await this.changeCategory(store.category);
         const status = await this.getStatus(storeId);
 
         const days = ['sunClose','monClose','tueClose','wedClose','thuClose','friClose','satClose'];
@@ -477,7 +490,7 @@ class StoreService{
         const keywords = await this.getRankByStore(storeId);
         const tags = await this.findTagByStore(storeId);
 
-        return new StoreDetailDTO({...store,status,closeTime,keywords,tags});
+        return new StoreDetailDTO({...store,status,closeTime,keywords,tags,category:category});
     }
 
     async getBussinessHourByStore(storeId){
