@@ -264,6 +264,11 @@ class ReviewService{
             where:{
                 storeId:storeId,
             },
+            orderBy:{
+                reviewLikes:{
+                    _count:"desc"
+                }
+            }
         });
         if(!data){
             return;
