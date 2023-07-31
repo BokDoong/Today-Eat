@@ -9,7 +9,7 @@ export class StoreCardDTO{
     constructor(props) {
         this.id = props.id;
         this.name = props.name;
-        this.time = (props.distance*0.014).toFixed();
+        this.time = props.time;
         this.category = props.category;
         this.tags = props.tags;
         this.isWishlist = props.isWishlist;
