@@ -5,7 +5,6 @@ import { MyReviewDTO, ReviewDTO } from "../dto";
 
 class ReviewService{
     userService;
-    storeService;
     constructor(){
         this.userService = new UserService();
     }
@@ -158,6 +157,105 @@ class ReviewService{
         }
     }
 
+    //내가 쓴 리뷰
+    async getMyReview(userId){
+        const days = ['일','월','화','수','목','금','토'];
+        const reviews = await this.findReviewByUser(userId);
+        const details = await Promise.all(reviews.map(async(review)=>{
+            let tags = await this.findTagByReview(review.id);
+            tags = await Promise.all(tags.map((tag)=>{
+                return tag.name;
+            }));
+            const likeCount = (await this.findLikeByReview(review.id)).length;
+            const createdDate = await this.getCreatedDate(review.createdAt);
+            const userName = (await this.userService.findUserById(userId)).name;
+            return new MyReviewDTO({...review,tags,likeCount,createdDate,userName});
+        }))
+
+        return details;
+    }
+
+
+    //가게별 리뷰 조회
+    async getReviewsByStore(storeId,orderby,skip,take){
+        let reviews;
+        if(orderby==="liked"){
+            reviews = await database.review.findMany({
+                skip:skip,
+                take:take,
+                where:{
+                    storeId:storeId,
+                },
+                include:{
+                    reviewImages:{
+                        select:{
+                            imageUrl:true
+                        }
+                    },
+                    tags:{
+                        select:{
+                            name:true,
+                        }
+                    },
+                    _count:{
+                        select:{
+                            reviewLikes:true,
+                        }
+                    }
+                },
+                orderBy:{
+                    reviewLikes:{
+                        _count:"desc",
+                    }
+                }
+            });
+        }else if(orderby==="latest"){
+            reviews = await database.review.findMany({
+                skip:skip,
+                take:take,
+                where:{
+                    storeId:storeId,
+                },
+                include:{
+                    reviewImages:{
+                        select:{
+                            imageUrl:true
+                        }
+                    },
+                    tags:{
+                        select:{
+                            name:true,
+                        }
+                    },
+                    _count:{
+                        select:{
+                            reviewLikes:true,
+                        }
+                    }
+                },
+                orderBy:{
+                    createdAt:"desc",
+                }
+            });
+        }
+        
+        let details = [];
+        for(const review of reviews){
+            const userName = (await this.userService.findUserById(review.userId)).name;
+            const createdDate = await this.getCreatedDate(review.createdAt);
+            details.push(new ReviewDTO({...review,userName,createdDate}));
+            
+        }
+
+        return details;
+        
+    }
+
+
+    /*-----------------------------------------------------------------------------------------------------*/
+    /*-----------------------------------------------------------------------------------------------------*/
+
+
     async findReviewSample(storeId){
         const data = await database.review.findFirst({
             include:{
@@ -254,101 +352,11 @@ class ReviewService{
         return likes;
     }
 
-    async getMyReview(userId){
-        const days = ['일','월','화','수','목','금','토'];
-        const reviews = await this.findReviewByUser(userId);
-        const details = await Promise.all(reviews.map(async(review)=>{
-            let tags = await this.findTagByReview(review.id);
-            tags = await Promise.all(tags.map((tag)=>{
-                return tag.name;
-            }));
-            const likeCount = (await this.findLikeByReview(review.id)).length;
-            const createdDate = await this.getCreatedDate(review.createdAt);
-            const userName = (await this.userService.findUserById(userId)).name;
-            return new MyReviewDTO({...review,tags,likeCount,createdDate,userName});
-        }))
-
-        return details;
-    }
 
     async getCreatedDate(createdAt){
         const days = ['일','월','화','수','목','금','토'];
         const day = (createdAt.getMonth()+1)+"."+(createdAt.getDate())+"."+days[createdAt.getDay()];
         return day;
-    }
-
-    async getReviewsByStore(storeId,orderby,skip,take){
-        let reviews;
-        if(orderby==="liked"){
-            reviews = await database.review.findMany({
-                skip:skip,
-                take:take,
-                where:{
-                    storeId:storeId,
-                },
-                include:{
-                    reviewImages:{
-                        select:{
-                            imageUrl:true
-                        }
-                    },
-                    tags:{
-                        select:{
-                            name:true,
-                        }
-                    },
-                    _count:{
-                        select:{
-                            reviewLikes:true,
-                        }
-                    }
-                },
-                orderBy:{
-                    reviewLikes:{
-                        _count:"desc",
-                    }
-                }
-            });
-        }else if(orderby==="latest"){
-            reviews = await database.review.findMany({
-                skip:skip,
-                take:take,
-                where:{
-                    storeId:storeId,
-                },
-                include:{
-                    reviewImages:{
-                        select:{
-                            imageUrl:true
-                        }
-                    },
-                    tags:{
-                        select:{
-                            name:true,
-                        }
-                    },
-                    _count:{
-                        select:{
-                            reviewLikes:true,
-                        }
-                    }
-                },
-                orderBy:{
-                    createdAt:"desc",
-                }
-            });
-        }
-        
-        let details = [];
-        for(const review of reviews){
-            const userName = (await this.userService.findUserById(review.userId)).name;
-            const createdDate = await this.getCreatedDate(review.createdAt);
-            details.push(new ReviewDTO({...review,userName,createdDate}));
-            
-        }
-
-        return details;
-        
     }
 }
 

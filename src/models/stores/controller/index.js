@@ -18,12 +18,10 @@ class StoreController{
     init(){
         this.router.get("/fetch-campers-data",campersData.bind(this));
         this.router.get("/fetch-store-data",storeData.bind(this));
-
         
         this.router.get("/rank-sample",this.getRankSample.bind(this));
         this.router.get("/rank",this.getRank.bind(this));
         this.router.get("/category",this.getStoreByCategory.bind(this));
-        
         this.router.get("/search",this.searchStore.bind(this));
         this.router.get("/recommend",this.recommendStore.bind(this));
         
@@ -102,7 +100,7 @@ class StoreController{
         }
     }
 
-    //지도에서 가게목록 조회
+    //지도페이지 가게목록
     getStoresOnMap = async (req,res,next) => {
         try{
             const user = await this.userService.findUserById(req.user.id);
@@ -115,7 +113,7 @@ class StoreController{
         }
     }
 
-    //지도에서 가게정보 조회
+    //지도페이지 가게정보
     getStoreOnMap = async (req,res,next) => {
         try{
             const storeId = req.params.id;

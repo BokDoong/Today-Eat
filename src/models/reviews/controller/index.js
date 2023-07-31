@@ -16,14 +16,16 @@ class ReviewController{
     }
 
     init(){
+        this.router.post("/like/:id",this.reviewLike.bind(this));
+
+        this.router.get("/myReview",this.getMyReview.bind(this));
+
+        this.router.get("/:id",pagination,this.getReviewsByStore.bind(this));
         this.router.post("/",imageUploader.array('images'),this.createReview.bind(this));
         this.router.put("/:id",imageUploader.array('images'),this.updateReview.bind(this));
         this.router.delete("/:id",this.deleteReview.bind(this));
         
-        this.router.post("/like/:id",this.reviewLike.bind(this));
         
-        this.router.get("/myReview",this.getMyReview.bind(this));
-        this.router.get("/:id",pagination,this.getReviewsByStore.bind(this));
 
     }
     

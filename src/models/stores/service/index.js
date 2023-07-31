@@ -3,15 +3,80 @@ import {StoreCardDTO,StoreCategoryDTO,StoreDetailDTO,StoreDetailMapDTO,StoreMapD
 import {reviewService} from "../../reviews/service";
 
 class StoreService{
-    async findStoreByID(id){
-        const store = await database.store.findFirst({
-            where:{
-                id:id,
+
+    //랭킹 갱신
+    async updateRank(){
+        let first = true;
+        const check = await database.tagRank.findFirst();
+        if(check){
+            first = false;
+        }
+        let campersList = await database.campers.findMany({
+            select:{
+                id:true,
             }
         });
+        for(const campers of campersList){
+            const stores = await this.findStoreByCampers(campers.id);
+            const storeIds = stores.map((store)=>{
+                return store.id;
+            })
+            let ranks = [];
+            const keywords = ["밥약","분위기","혼밥","단체","술약속"];
 
-        if(!store) throw {status:404, message:"가게를 찾을 수 없습니다."};
-        return store;
+            for(const keyword of keywords){
+                const count = await this.getKeywordCount(keyword,storeIds);
+                ranks.push(count.slice(0,20));
+            }  
+            
+            for(let i=0;i<5;i++){
+                const data = ranks[i];
+                for(let j=0;j<data.length;j++){
+                    if(first){
+                        await database.tagRank.create({
+                            data:{
+                                campers:{
+                                    connect:{
+                                        id:campers.id,
+                                    }                                    
+                                },
+                                store:{
+                                    connect:{
+                                        id:data[j],
+                                    },
+                                },
+                                rank:j+1,
+                                tag:keywords[i],
+                            }
+                        })
+                    }else{
+                        await database.tagRank.update({
+                            where:{
+                                tag_rank_campersId:{
+                                    tag:keywords[i],
+                                    rank:j+1,
+                                    campersId:campers.id,
+                                },
+                            },
+                            data:{
+                                campers:{
+                                    connect:{
+                                        id:campers.id,
+                                    }                                    
+                                },
+                                store:{
+                                    connect:{
+                                        id:data[j],
+                                    },
+                                },
+                                rank:j+1,
+                                tag:keywords[i],
+                            }
+                        })
+                    }
+                }
+            }
+        }
     }
 
     //랭킹 샘플 조회
@@ -152,6 +217,210 @@ class StoreService{
         return storeList;
     }
 
+    //가게 찜하기/해제
+    async storeWishlist(userId,storeId,isLike){
+        if(isLike){
+            const data = await database.wishList.create({
+                data:{
+                    store:{
+                        connect:{
+                            id:storeId,
+                        },
+                    },
+                    user:{
+                        connect:{
+                            id:userId,
+                        },
+                    },
+                }
+            })
+            return data;
+        }
+        const data = await database.wishList.delete({
+            where:{
+                userId_storeId:{
+                    storeId:storeId,
+                    userId:userId,
+                }
+            }
+        })
+        return data;
+    }
+
+    //카테고리별 조회
+    async getStoreByCategory(user,orderby){
+        const userId= user.id;
+        const campersId = user.campersId;
+        const stores = await this.findStoreByCampers(campersId);
+        const categorys = {'한식':[],'중식':[],'양식':[],'일식':[],'분식':[],'아시아':[],'패스트푸드':[],'종합식당':[],'카페/디저트':[],'술집':[]};
+
+        for(const store of stores){
+            const status = await this.getStatus(store.id);
+            const score = await this.getAvgScore(store.id);
+            const reviewCount = await reviewService.getReviewCount(store.id);
+            const reviewSample = await reviewService.findReviewSample(store.id);
+            const isWishlist = await this.checkWishlist(store.id);
+            const rank = await this.getRankByStore(store.id);
+            const dto = new StoreCategoryDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,isWishlist,rank});
+            
+            categorys[await this.changeCategory(store.category)].push(dto);
+        }
+        for(let category in categorys){
+            categorys[category] = categorys[category].sort((a,b)=>{
+                if(orderby==="distance"){
+                    return a.distance - b.distance;
+                }else if(orderby==="score"){
+                    return b.score - a.score;
+                }else if(orderby==="reviewCount"){
+                    return b.reviewCount - a.reviewCount;
+                }
+            })
+        }
+        return categorys;         
+    }
+
+    //지도 페이지 가게 목록
+    async getStoresOnMap(user,distance,keyword,category,isOpen){
+        const userId = user.id;
+        const campersId = user.campersId;
+
+        let stores = await database.store.findMany({
+            select:{
+                id:true,
+                x:true,
+                y:true,
+            },
+            where:{
+                campersId:campersId,
+                distance:{
+                    lte:distance,
+                },
+                keywords:{
+                    some:{
+                        name:{
+                            in:keyword,
+                        }
+                    }
+                },
+                category:{
+                    in:category,
+                }
+            }
+        })
+
+        let details = [];
+        await Promise.all(stores.map(async (store)=>{
+            const isWishlist = await this.checkWishlist(userId,store.id);
+
+            if(isOpen){
+                const status = await this.getStatus(store.id);
+                if(!status){
+                    return;
+                }
+            }    
+            details.push(new StoreMapDTO({...store, isWishlist}));
+        }))
+
+        return details;
+    }
+
+    //지도 페이지 가게 정보
+    async getStoreOnMap(storeId){
+        const store = await this.findStoreByID(storeId);
+        const category = await this.changeCategory(store.category);
+        const status = await this.getStatus(storeId);
+        const score = await this.getAvgScore(storeId);
+        const reviewCount = await reviewService.getReviewCount(storeId);
+        const reviewSample = await reviewService.findReviewSample(storeId);
+        const rank = await this.getRankByStore(storeId);
+        const dto = new StoreDetailMapDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,reviewImage:reviewSample.reviewImages[0],rank,category:category});   
+        return dto;
+    }
+
+    //가게 추천
+    async recommendStore(campersId){
+        const storeCount = await database.store.count();
+        let stores = new Array();
+        let storeIds = new Set();
+        while(stores.length<5){
+            const random = Math.floor(Math.random() * storeCount);
+            const store = await database.store.findFirst({
+                where:{
+                    campersId:campersId,
+                },
+                skip:random
+            });
+            if(storeIds.has(store.id))continue;
+            stores.push(store);
+            storeIds.add(store.id);
+        }
+
+        const details = await Promise.all(stores.map(async(store)=>{
+            const status = await this.getStatus(store.id);
+            const score = await this.getAvgScore(store.id);
+            const reviewCount = await reviewService.getReviewCount(store.id);
+            const category = await this.changeCategory(store.category);
+            return new StoreRecommendDTO({...store,status,score,reviewCount,category:category});
+        })) 
+
+        return details;
+    }
+
+    //리뷰 작성한 가게 목록
+    async getReviewedStore(userId){
+        const reviews = (await reviewService.findReviewByUser(userId));
+        let storeIds = reviews.map((review)=>{
+            return review.storeId;
+        })
+        storeIds = new Set(storeIds);
+        storeIds = [...storeIds].slice(0,5);
+
+        const details = await Promise.all(storeIds.map(async(storeId)=>{
+            const store = await this.findStoreByID(storeId);
+            const status = await this.getStatus(storeId);
+            const score = await this.getAvgScore(storeId);
+            const reviewCount = await reviewService.getReviewCount(storeId);
+            const reviewSample = await reviewService.findReviewSample(storeId);
+            const rank = await this.getRankByStore(storeId);    
+            const isWishlist = await this.checkWishlist(userId,storeId);
+            const category = await this.changeCategory(store.category);
+            return new StoreReviewedDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,rank,isWishlist,category:category})
+        }))
+
+        return details;
+    }
+    
+    //가게 상세페이지
+    async getStoreDetail(storeId){
+        const store = await this.findStoreByID(storeId);
+        const category = await this.changeCategory(store.category);
+        const status = await this.getStatus(storeId);
+
+        const days = ['sunClose','monClose','tueClose','wedClose','thuClose','friClose','satClose'];
+        const today = days[new Date().getDay()];
+        let closeTime
+        const time = await this.getBussinessHourByStore(storeId);
+        if(time)closeTime = time[today];
+        const keywords = await this.getRankByStore(storeId);
+        const tags = await this.findTagByStore(storeId);
+
+        return new StoreDetailDTO({...store,status,closeTime,keywords,tags,category:category});
+    }
+
+
+    /*-----------------------------------------------------------------------------------------------------*/
+    /*-----------------------------------------------------------------------------------------------------*/
+
+
+    async getBussinessHourByStore(storeId){
+        const time = await database.businessHour.findUnique({
+            where:{
+                storeId:storeId,
+            }
+        });
+        return time;
+    }
+
     async getKeywordCount(keyword,stores){
         const data = await database.keyword.findMany({
             select:{
@@ -269,35 +538,6 @@ class StoreService{
         return true;
     }
 
-    async storeWishlist(userId,storeId,isLike){
-        if(isLike){
-            const data = await database.wishList.create({
-                data:{
-                    store:{
-                        connect:{
-                            id:storeId,
-                        },
-                    },
-                    user:{
-                        connect:{
-                            id:userId,
-                        },
-                    },
-                }
-            })
-            return data;
-        }
-        const data = await database.wishList.delete({
-            where:{
-                userId_storeId:{
-                    storeId:storeId,
-                    userId:userId,
-                }
-            }
-        })
-        return data;
-    }
-
     async getRankByStore(storeId){
         const rank = await database.tagRank.findMany({
             select:{
@@ -335,247 +575,15 @@ class StoreService{
         }
     }
 
-    //카테고리별 조회
-    async getStoreByCategory(user,orderby){
-        const userId= user.id;
-        const campersId = user.campersId;
-        const stores = await this.findStoreByCampers(campersId);
-        const categorys = {'한식':[],'중식':[],'양식':[],'일식':[],'분식':[],'아시아':[],'패스트푸드':[],'종합식당':[],'카페/디저트':[],'술집':[]};
-
-        for(const store of stores){
-            const status = await this.getStatus(store.id);
-            const score = await this.getAvgScore(store.id);
-            const reviewCount = await reviewService.getReviewCount(store.id);
-            const reviewSample = await reviewService.findReviewSample(store.id);
-            const isWishlist = await this.checkWishlist(store.id);
-            const rank = await this.getRankByStore(store.id);
-            const dto = new StoreCategoryDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,isWishlist,rank});
-            
-            categorys[await this.changeCategory(store.category)].push(dto);
-        }
-        for(let category in categorys){
-            categorys[category] = categorys[category].sort((a,b)=>{
-                if(orderby==="distance"){
-                    return a.distance - b.distance;
-                }else if(orderby==="score"){
-                    return b.score - a.score;
-                }else if(orderby==="reviewCount"){
-                    return b.reviewCount - a.reviewCount;
-                }
-            })
-        }
-        return categorys;         
-    }
-
-    //지도에서 가게 목록 조회
-    async getStoresOnMap(user,distance,keyword,category,isOpen){
-        const userId = user.id;
-        const campersId = user.campersId;
-
-        let stores = await database.store.findMany({
-            select:{
-                id:true,
-                x:true,
-                y:true,
-            },
+    async findStoreByID(id){
+        const store = await database.store.findFirst({
             where:{
-                campersId:campersId,
-                distance:{
-                    lte:distance,
-                },
-                keywords:{
-                    some:{
-                        name:{
-                            in:keyword,
-                        }
-                    }
-                },
-                category:{
-                    in:category,
-                }
-            }
-        })
-
-        let details = [];
-        await Promise.all(stores.map(async (store)=>{
-            const isWishlist = await this.checkWishlist(userId,store.id);
-
-            if(isOpen){
-                const status = await this.getStatus(store.id);
-                if(!status){
-                    return;
-                }
-            }    
-            details.push(new StoreMapDTO({...store, isWishlist}));
-        }))
-
-        return details;
-    }
-
-    async getStoreOnMap(storeId){
-        const store = await this.findStoreByID(storeId);
-        const category = await this.changeCategory(store.category);
-        const status = await this.getStatus(storeId);
-        const score = await this.getAvgScore(storeId);
-        const reviewCount = await reviewService.getReviewCount(storeId);
-        const reviewSample = await reviewService.findReviewSample(storeId);
-        const rank = await this.getRankByStore(storeId);
-        const dto = new StoreDetailMapDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,reviewImage:reviewSample.reviewImages[0],rank,category:category});   
-        return dto;
-    }
-
-    //가게 추천
-    async recommendStore(campersId){
-        const storeCount = await database.store.count();
-        let stores = new Array();
-        let storeIds = new Set();
-        while(stores.length<5){
-            const random = Math.floor(Math.random() * storeCount);
-            const store = await database.store.findFirst({
-                where:{
-                    campersId:campersId,
-                },
-                skip:random
-            });
-            if(storeIds.has(store.id))continue;
-            stores.push(store);
-            storeIds.add(store.id);
-        }
-
-        const details = await Promise.all(stores.map(async(store)=>{
-            const status = await this.getStatus(store.id);
-            const score = await this.getAvgScore(store.id);
-            const reviewCount = await reviewService.getReviewCount(store.id);
-            const category = await this.changeCategory(store.category);
-            return new StoreRecommendDTO({...store,status,score,reviewCount,category:category});
-        })) 
-
-        return details;
-    }
-
-    //리뷰 작성한 가게 목록
-    async getReviewedStore(userId){
-        const reviews = (await reviewService.findReviewByUser(userId));
-        let storeIds = reviews.map((review)=>{
-            return review.storeId;
-        })
-        storeIds = new Set(storeIds);
-        storeIds = [...storeIds].slice(0,5);
-
-        const details = await Promise.all(storeIds.map(async(storeId)=>{
-            const store = await this.findStoreByID(storeId);
-            const status = await this.getStatus(storeId);
-            const score = await this.getAvgScore(storeId);
-            const reviewCount = await reviewService.getReviewCount(storeId);
-            const reviewSample = await reviewService.findReviewSample(storeId);
-            const rank = await this.getRankByStore(storeId);    
-            const isWishlist = await this.checkWishlist(userId,storeId);
-            const category = await this.changeCategory(store.category);
-            return new StoreReviewedDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,rank,isWishlist,category:category})
-        }))
-
-        return details;
-    }
-    
-    //가게 상세페이지
-    async getStoreDetail(storeId){
-        const store = await this.findStoreByID(storeId);
-        const category = await this.changeCategory(store.category);
-        const status = await this.getStatus(storeId);
-
-        const days = ['sunClose','monClose','tueClose','wedClose','thuClose','friClose','satClose'];
-        const today = days[new Date().getDay()];
-        let closeTime
-        const time = await this.getBussinessHourByStore(storeId);
-        if(time)closeTime = time[today];
-        const keywords = await this.getRankByStore(storeId);
-        const tags = await this.findTagByStore(storeId);
-
-        return new StoreDetailDTO({...store,status,closeTime,keywords,tags,category:category});
-    }
-
-    async getBussinessHourByStore(storeId){
-        const time = await database.businessHour.findUnique({
-            where:{
-                storeId:storeId,
+                id:id,
             }
         });
-        return time;
-    }
 
-    //랭킹 갱신
-    async updateRank(){
-        let first = true;
-        const check = await database.tagRank.findFirst();
-        if(check){
-            first = false;
-        }
-        let campersList = await database.campers.findMany({
-            select:{
-                id:true,
-            }
-        });
-        for(const campers of campersList){
-            const stores = await this.findStoreByCampers(campers.id);
-            const storeIds = stores.map((store)=>{
-                return store.id;
-            })
-            let ranks = [];
-            const keywords = ["밥약","분위기","혼밥","단체","술약속"];
-
-            for(const keyword of keywords){
-                const count = await this.getKeywordCount(keyword,storeIds);
-                ranks.push(count.slice(0,20));
-            }  
-            
-            for(let i=0;i<5;i++){
-                const data = ranks[i];
-                for(let j=0;j<data.length;j++){
-                    if(first){
-                        await database.tagRank.create({
-                            data:{
-                                campers:{
-                                    connect:{
-                                        id:campers.id,
-                                    }                                    
-                                },
-                                store:{
-                                    connect:{
-                                        id:data[j],
-                                    },
-                                },
-                                rank:j+1,
-                                tag:keywords[i],
-                            }
-                        })
-                    }else{
-                        await database.tagRank.update({
-                            where:{
-                                tag_rank_campersId:{
-                                    tag:keywords[i],
-                                    rank:j+1,
-                                    campersId:campers.id,
-                                },
-                            },
-                            data:{
-                                campers:{
-                                    connect:{
-                                        id:campers.id,
-                                    }                                    
-                                },
-                                store:{
-                                    connect:{
-                                        id:data[j],
-                                    },
-                                },
-                                rank:j+1,
-                                tag:keywords[i],
-                            }
-                        })
-                    }
-                }
-            }
-        }
+        if(!store) throw {status:404, message:"가게를 찾을 수 없습니다."};
+        return store;
     }
 }
 
