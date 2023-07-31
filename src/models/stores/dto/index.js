@@ -7,3 +7,4 @@ export * from "./store-map.dto";
 export * from "./store-search.dto";
 export * from "./store-recommend.dto";
 export * from "./store-reviewed.dto";
+export * from "./store-detail.dto";

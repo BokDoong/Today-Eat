@@ -1,5 +1,5 @@
 import database from "../../../database";
-import {StoreCardDTO,StoreCategoryDTO,StoreDetailMapDTO,StoreMapDTO,StoreRankDTO, StoreRecommendDTO, StoreReviewedDTO, StoreSearchDTO, StoreWishlistDTO} from "../dto";
+import {StoreCardDTO,StoreCategoryDTO,StoreDetailDTO,StoreDetailMapDTO,StoreMapDTO,StoreRankDTO, StoreRecommendDTO, StoreReviewedDTO, StoreSearchDTO, StoreWishlistDTO} from "../dto";
 import {reviewService} from "../../reviews/service";
 
 class StoreService{
@@ -41,7 +41,7 @@ class StoreService{
             const stores = await Promise.all(
                 data.map(async (id)=>{
                     const props = await this.findStoreByID(id);
-                    const tags = (await this.findTagByStore(id)).slice(0,3);
+                    const tags = Object.keys((await this.findTagByStore(id))).slice(0,3);
                     const isWishlist = await this.checkWishlist(userId,id);
                     const store = new StoreCardDTO({...props,tags,isWishlist});
                     return store;
@@ -191,7 +191,7 @@ class StoreService{
             Object.entries(result).sort(([,a],[,b]) => a > b? -1: 1 )
         );
 
-        return Object.keys(sort);
+        return sort;
     }
 
     async findStoreByCampers(campersId){
@@ -454,6 +454,31 @@ class StoreService{
         }))
 
         return details;
+    }
+    
+    //가게 상세페이지
+    async getStoreDetail(storeId){
+        const store = await this.findStoreByID(storeId);
+        const status = await this.getStatus(storeId);
+
+        const days = ['sunClose','monClose','tueClose','wedClose','thuClose','friClose','satClose'];
+        const today = days[new Date().getDay()];
+        let closeTime
+        const time = await this.getBussinessHourByStore(storeId);
+        if(time)closeTime = time[today];
+        const keywords = await this.getRankByStore(storeId);
+        const tags = await this.findTagByStore(storeId);
+
+        return new StoreDetailDTO({...store,status,closeTime,keywords,tags});
+    }
+
+    async getBussinessHourByStore(storeId){
+        const time = await database.businessHour.findUnique({
+            where:{
+                storeId:storeId,
+            }
+        });
+        return time;
     }
 
     //랭킹 갱신

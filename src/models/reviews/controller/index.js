@@ -2,6 +2,7 @@ import { Router } from "express";
 import { reviewService } from "../service";
 import { CreateReviewDTO } from "../dto";
 import {imageUploader} from "../../../middleware";
+import {pagination} from "../../../middleware"
 
 class ReviewController{
     router;
@@ -20,8 +21,10 @@ class ReviewController{
         this.router.delete("/:id",this.deleteReview.bind(this));
         
         this.router.post("/like/:id",this.reviewLike.bind(this));
-
+        
         this.router.get("/myReview",this.getMyReview.bind(this));
+        this.router.get("/:id",pagination,this.getReviewsByStore.bind(this));
+
     }
     
     //리뷰 작성
@@ -108,6 +111,20 @@ class ReviewController{
             if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
 
             const reviews = await this.reviewService.getMyReview(req.user.id);
+
+            res.status(200).json(reviews);
+        }catch(err){
+            next(err);
+        }
+    }
+
+    //가게별 리뷰조회
+    getReviewsByStore = async (req,res,next) => {
+        try{
+            const {orderby} = req.query;
+            const storeId = req.params.id;
+            const {take,skip} = req;
+            const reviews = await this.reviewService.getReviewsByStore(storeId,orderby,skip,take);
 
             res.status(200).json(reviews);
         }catch(err){
