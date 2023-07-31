@@ -40,6 +40,8 @@ class StoreController{
     //랭킹 샘플 조회
     getRankSample = async (req,res,next) => {
         try{
+            if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+
             const user = await this.userService.findUserById(req.user.id);
             const result = await this.storeService.getRankSample(user);
             
@@ -52,6 +54,8 @@ class StoreController{
     //랭킹 조회
     getRank = async (req,res,next) => {
         try{
+            if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+
             const user = await this.userService.findUserById(req.user.id);
             const result = await this.storeService.getRank(user.id,user.campersId);
             
@@ -64,6 +68,8 @@ class StoreController{
     //가게 찜하기/찜 해제
     storeWishlist = async (req,res,next) => {
         try{
+            if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+
             const userId = req.user.id;
             const storeId = req.body.storeId;
             const isLike = req.body.isLike;
@@ -78,10 +84,13 @@ class StoreController{
     //카테고리별 가게 조회
     getStoreByCategory = async (req,res,next) => {
         try{
+            if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+
             const user = await this.userService.findUserById(req.user.id);
             let {orderby} = req.query;
             if(!orderby)orderby = "distance";
             const result = await this.storeService.getStoreByCategory(user,orderby);
+            
             res.status(200).json(result)
         }catch(err){
             next(err);
@@ -91,6 +100,8 @@ class StoreController{
     //찜한 가게 목록 조회
     getWishlist = async (req,res,next) => {
         try{
+            if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+
             const user = await this.userService.findUserById(req.user.id);
             const result = await this.storeService.getWishlist(user.id);
 
@@ -103,6 +114,8 @@ class StoreController{
     //지도페이지 가게목록
     getStoresOnMap = async (req,res,next) => {
         try{
+            if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+
             const user = await this.userService.findUserById(req.user.id);
             const { distance, keyword, category, isOpen } = req.body;
             const stores = await this.storeService.getStoresOnMap(user,distance,keyword,category,isOpen);
@@ -116,6 +129,8 @@ class StoreController{
     //지도페이지 가게정보
     getStoreOnMap = async (req,res,next) => {
         try{
+            if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+
             const storeId = req.params.id;
             const store = await this.storeService.getStoreOnMap(storeId);
 
@@ -128,6 +143,8 @@ class StoreController{
     //가게 검색
     searchStore = async (req,res,next) => {
         try{
+            if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+
             const user = await this.userService.findUserById(req.user.id);
             let orderby = req.query.orderby;
             if(!orderby)orderby = "distance";
@@ -143,18 +160,23 @@ class StoreController{
     //가게 추천
     recommendStore = async (req,res,next) => {
         try{
+            if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+
             const user = await this.userService.findUserById(req.user.id);
             const stores = await this.storeService.recommendStore(user.campersId);
             const result = Array.from(stores);
+            
             res.status(200).json(result);
         }catch(err){
-
+            next(err);
         }
     }
 
     //리뷰 작성한 가게 목록
     getReviewedStores = async (req,res,next) => {
         try{
+            if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+
             const stores = await this.storeService.getReviewedStore(req.user.id);
 
             res.status(200).json(stores);
@@ -166,6 +188,8 @@ class StoreController{
     //가게 상세 페이지
     getStoreDetail = async (req,res,next) => {
         try{
+            if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+
             const storeId = req.params.id;
             const detail = await this.storeService.getStoreDetail(storeId);
 

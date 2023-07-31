@@ -5,14 +5,14 @@ export class StoreWishlistDTO{
     status;
     score;
     reviewCount;
-    distance;
+    time;
     imageUrl;
     reviewSample;
 
     constructor(props){
         this.storeId = props.id;
         this.name = props.name;
-        this.distance = props.distance;
+        this.time = props.time;
         this.imageUrl = props.imageUrl;
         this.rank = props.rank;
         this.status = props.status;

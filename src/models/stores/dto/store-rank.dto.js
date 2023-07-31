@@ -15,7 +15,7 @@ export class StoreRankDTO{
         this.id = props.id;
         this.name = props.name;
         this.category = props.category;
-        this.time = (props.distance*0.014).toFixed();
+        this.time = props.time;
         this.status = props.status;
         this.score = props.score;
         this.reviewCount = props.reviewCount;

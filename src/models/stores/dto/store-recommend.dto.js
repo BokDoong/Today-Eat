@@ -2,7 +2,7 @@ export class StoreRecommendDTO{
     id;
     name;
     category;
-    distance
+    time;
     status;
     score;
     reviewCount;
@@ -13,7 +13,7 @@ export class StoreRecommendDTO{
         this.name = props.name;
         this.category = props.category;
         this.imageUrl = props.imageUrl;
-        this.distance = props.distance;
+        this.time = props.time;
         this.status = props.status;
         this.score = props.score;
         this.reviewCount = props.reviewCount;

@@ -6,7 +6,7 @@ export class StoreDetailMapDTO{
     status;
     score;
     reviewCount;
-    distance;
+    time;
     reviewImage;
     reviewSample;
     isWishlist;
@@ -15,7 +15,7 @@ export class StoreDetailMapDTO{
         this.storeId = props.id;
         this.name = props.name;
         this.category = props.category;
-        this.distance = props.distance;
+        this.time = props.time;
         this.rank = props.rank;
         this.status = props.status;
         this.score = props.score;

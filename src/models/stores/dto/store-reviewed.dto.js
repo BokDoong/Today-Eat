@@ -5,7 +5,7 @@ export class StoreReviewedDTO{
     status;
     score;
     reviewCount;
-    distance;
+    time;
     imageUrl;
     reviewSample;
     isWishlist;
@@ -14,7 +14,7 @@ export class StoreReviewedDTO{
     constructor(props){
         this.storeId = props.id;
         this.name = props.name;
-        this.distance = props.distance;
+        this.time = props.time;
         this.imageUrl = props.imageUrl;
         this.rank = props.rank;
         this.status = props.status;
