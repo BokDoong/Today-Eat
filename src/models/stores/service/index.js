@@ -251,7 +251,7 @@ class StoreService{
         const userId= user.id;
         const campersId = user.campersId;
         const stores = await this.findStoreByCampers(campersId);
-        const categorys = {'한식':[],'중식':[],'양식':[],'일식':[],'분식':[],'아시아':[],'패스트푸드':[],'종합식당':[],'카페/디저트':[],'술집':[]};
+        const categorys = {'한식':[],'중식':[],'양식':[],'일식':[],'분식':[],'아시아':[],'패스트푸드':[],'레스토랑':[],'카페/디저트':[],'술':[]};
 
         for(const store of stores){
             const status = await this.getStatus(store.id);
