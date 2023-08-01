@@ -601,7 +601,7 @@ class StoreService{
             return '한식';
         }else if(category=="중식"){
             return '중식';
-        }else if(category=="양식"||category=="패밀리레스토랑"){
+        }else if(category=="양식"){
             return '양식';
         }else if(category=="일식"||category=="퓨전요리"){
             return '일식';
@@ -611,12 +611,12 @@ class StoreService{
             return '아시아';
         }else if(category=="패스트푸드"||category=="치킨"||category=="도시락"){
             return '패스트푸드';
-        }else if(category=="뷔페"||category=="푸트코트"){
-            return '종합식당';
+        }else if(category=="뷔페"||category=="패밀리레스토랑"){
+            return '레스토랑';
         }else if(category=="카페"||category=="간식"||category=="샐러드"){
             return '카페/디저트';
         }else if(category=="술집"){
-            return '술집';
+            return '술';
         }
     }
 
