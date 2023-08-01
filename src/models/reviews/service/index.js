@@ -151,7 +151,6 @@ class ReviewService{
 
     //내가 쓴 리뷰
     async getMyReview(userId){
-        const days = ['일','월','화','수','목','금','토'];
         const reviews = await this.findReviewByUser(userId);
         const details = await Promise.all(reviews.map(async(review)=>{
             let tags = await this.findTagByReview(review.id);
@@ -332,7 +331,7 @@ class ReviewService{
                 userId:userId,
             },
             orderBy:{
-                createdAt:"asc"
+                createdAt:"desc"
             }
         });
 
