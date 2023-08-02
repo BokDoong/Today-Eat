@@ -49,6 +49,19 @@ class ReviewService{
             }
         })
 
+        const store = await storeService.findStoreByID(props.storeId);
+        console.log(store.imageUrl);
+        if(!store.imageUrl){
+            await database.store.update({
+                where:{
+                    id:store.id,
+                },
+                data:{
+                    imageUrl:props.images[0],
+                }
+            })
+        }
+
         return newReview.id;
     }
 
@@ -56,12 +69,6 @@ class ReviewService{
     updateReview = async (userId, reviewId, props) => {
         const oldReview = await this.findReviewById(reviewId);
         if(oldReview.userId!==userId) throw{status:403,message:"권한이 없습니다"};
-
-        await database.reviewImage.deleteMany({
-            where:{
-                reviewId:reviewId,
-            }
-        });
 
         const newReview = await database.review.update({
             where:{
@@ -94,6 +101,30 @@ class ReviewService{
             }
         })
 
+        const store = await storeService.findStoreByID(oldReview.storeId);
+
+        const newImages = await this.findReviewImages(store.id);
+        if(newImages.imageCount!==0){
+            const newImage = newImages.imageURLs[0];
+            await database.store.update({
+                where:{
+                    id:store.id
+                },
+                data:{
+                    imageUrl:newImage
+                }
+            })
+        }else{
+            await database.store.update({
+                where:{
+                    id:store.id
+                },
+                data:{
+                    imageUrl:null,
+                }
+            })
+        }
+
         return newReview.id;
     }
 
@@ -108,6 +139,7 @@ class ReviewService{
         if(!review) throw{status:404,message:"리뷰를 찾을 수 없습니다."};
         if(review.userId!==userId) throw{status:403,message:"권한이 없습니다."};
 
+        
         await database.review.delete({
             where:{
                 id:review.id
@@ -117,7 +149,30 @@ class ReviewService{
                 reviewLikes:true,
             }
         })
+
+        const store = await storeService.findStoreByID(review.storeId);
+        const newImages = await this.findReviewImages(store.id);
         
+        if(newImages.imageCount!==0){
+            const newImage = newImages.imageURLs[0];
+            await database.store.update({
+                where:{
+                    id:store.id
+                },
+                data:{
+                    imageUrl:newImage
+                }
+            })
+        }else{
+            await database.store.update({
+                where:{
+                    id:store.id
+                },
+                data:{
+                    imageUrl:null,
+                }
+            })
+        }
     }
 
     //리뷰 좋아요
