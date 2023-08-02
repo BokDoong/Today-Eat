@@ -218,7 +218,11 @@ class StoreService{
 
     //가게 찜하기/해제
     async storeWishlist(userId,storeId,isLike){
+        const check = await this.checkWishlist(userId,storeId);
+
         if(isLike){
+            if(check)throw {status:409,message:"이미 찜한 가게입니다."}
+
             const data = await database.wishList.create({
                 data:{
                     store:{
@@ -235,6 +239,7 @@ class StoreService{
             })
             return data;
         }
+        if(!check)throw {status:404,message:"찜하지 않은 가게입니다."}
         const data = await database.wishList.delete({
             where:{
                 userId_storeId:{
@@ -364,22 +369,34 @@ class StoreService{
 
     //가게 추천
     async recommendStore(campersId){
-        const storeCount = await database.store.count();
+        const storeCount = await database.store.count({
+            where:{
+                campersId:campersId,
+            }
+        });
         let stores = new Array();
         let storeIds = new Set();
-        while(stores.length<5){
-            const random = Math.floor(Math.random() * storeCount);
-            const store = await database.store.findFirst({
+        if(storeCount<=5){
+            stores = await database.store.findMany({
                 where:{
                     campersId:campersId,
-                },
-                skip:random
+                }
             });
-            if(storeIds.has(store.id))continue;
-            stores.push(store);
-            storeIds.add(store.id);
+        }else{
+            while(stores.length<5){
+                const random = Math.floor(Math.random() * storeCount);
+                const store = await database.store.findFirst({
+                    where:{
+                        campersId:campersId,
+                    },
+                    skip:random
+                });
+                if(storeIds.has(store.id))continue;
+                stores.push(store);
+                storeIds.add(store.id);
+            }
         }
-
+        
         const details = await Promise.all(stores.map(async(store)=>{
             const status = await this.getStatus(store.id);
             const score = await this.getAvgScore(store.id);
@@ -568,7 +585,7 @@ class StoreService{
                 score:true,
             }
         })
-        return data._avg.score;
+        return data._avg.score.toFixed(1);
     }
 
 
