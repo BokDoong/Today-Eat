@@ -50,7 +50,6 @@ class ReviewService{
         })
 
         const store = await storeService.findStoreByID(props.storeId);
-        console.log(store.imageUrl);
         if(!store.imageUrl){
             await database.store.update({
                 where:{
@@ -215,7 +214,9 @@ class ReviewService{
             const likeCount = (await this.findLikeByReview(review.id)).length;
             const createdDate = await this.getCreatedDate(review.createdAt);
             const userName = (await this.userService.findUserById(userId)).name;
-            return new MyReviewDTO({...review,tags,likeCount,createdDate,userName});
+            let reviewImages = await this.findReviewImagesByReviewId(review.id);
+            reviewImages = reviewImages.map((image)=>image.imageUrl);
+            return new MyReviewDTO({...review,tags,likeCount,createdDate,userName,reviewImages});
         }))
 
         return details;
@@ -417,6 +418,15 @@ class ReviewService{
         const days = ['일','월','화','수','목','금','토'];
         const day = (createdAt.getMonth()+1)+"."+(createdAt.getDate())+"."+days[createdAt.getDay()];
         return day;
+    }
+
+    async findReviewImagesByReviewId(reviewId){
+        const reviews = await database.reviewImage.findMany({
+            where:{
+                reviewId:reviewId,
+            }
+        })
+        return reviews;
     }
 }
 
