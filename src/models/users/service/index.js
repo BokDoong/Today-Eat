@@ -270,11 +270,62 @@ export class UserService {
     return newInquiry.id;
   }
 
+  // 마케팅 수신 동의
+  async marketingAgree(userId, isAgree) {
+    const user = await this.findUserById(userId);
+
+    // isAgree 타입변형
+    if(isAgree === "true") {
+      isAgree = true;
+    } else if(isAgree == "false") {
+      isAgree = false;
+    } else { 
+      throw { status: 402, message: "입력 형식이 올바르지 않습니다."};
+    }
+
+    const isAgreed = await database.user.findMany({
+      where: {
+        id: userId,
+      },
+      select: {
+        agreement: true,
+      },
+    });
+
+    const isAgreedValue = isAgreed[0].agreement;
+    console.log(isAgreedValue);
+    console.log(isAgree);
+
+    // 동의
+    if(!isAgreedValue && isAgree) {
+      await database.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          agreement: true,
+        },
+      });
+    }
+
+    // 미동의
+    if(isAgreedValue && !isAgree) {
+      await database.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          agreement: false,
+        },
+      });
+    }
+  }
+
   // 공지사항 확인
   async getNotice(typeValue) {
 
     // 쿼리파라미터 검사
-    if (typeValue !== 'TERMS' && typeValue !== 'FAQ' && typeValue !== 'NOTICE')
+    if (typeValue !== 'TERMS' && typeValue !== 'FAQ' && typeValue !== 'NOTICE' && typeValue !== 'MARKETING')
       throw {status: 404, message: "잘못된 Type 입니다."};
 
     const notices = await database.notices.findMany({
@@ -348,12 +399,12 @@ export class UserService {
         name: props.name,
         nickname: props.nickname,
         university_email: props.university_email,
-        classOf:props.classOf,
         imageURL:props.imageURL,
         phoneNumber:props.phoneNumber,
         password:props.password,
         campersId:props.campersId,
         isEmailAuth: props.isEmailAuth,
+        agreement: props.agreement,
       },
     });
     
@@ -382,4 +433,5 @@ export class UserService {
     });
     return user.isEmailAuth;
   }
+
 }

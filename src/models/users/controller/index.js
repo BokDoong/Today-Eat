@@ -30,6 +30,8 @@ class UserController {
     this.router.patch("/email", this.updateEmail.bind(this));
     this.router.patch("/profile", imageUploader.single('image'), this.updateImage.bind(this));
     this.router.patch("/password", this.updatePassword.bind(this));
+
+    this.router.post("/agreement", this.marketingAgree.bind(this));
   }
 
   // 내 정보 상세조회
@@ -198,6 +200,20 @@ class UserController {
 
       res.status(201).json({ id: newInquiryResponseId});
 
+    } catch(err) {
+      next(err);
+    }
+  }
+
+  // 마케팅 수신 동의
+  async marketingAgree(req, res, next) {
+    try {
+      if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+      const { isAgree } = req.body;
+
+      await this.userService.marketingAgree(req.user.id, isAgree);
+
+      res.status(204).json({});
     } catch(err) {
       next(err);
     }
