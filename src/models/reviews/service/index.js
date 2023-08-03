@@ -2,6 +2,8 @@ import {UserService} from "../../users/service";
 import {storeService} from "../../stores/service";
 import database from "../../../database";
 import { MyReviewDTO, ReviewDTO } from "../dto";
+import {deleteImage} from "../../../middleware/";
+
 
 class ReviewService{
     userService;
@@ -67,7 +69,20 @@ class ReviewService{
     //리뷰 수정
     updateReview = async (userId, reviewId, props) => {
         const oldReview = await this.findReviewById(reviewId);
+        if(!oldReview) throw{status:404,message:"리뷰를 찾을 수 없습니다."};
         if(oldReview.userId!==userId) throw{status:403,message:"권한이 없습니다"};
+
+        const oldImages = await database.reviewImage.findMany({
+            where:{
+                reviewId:reviewId,
+            }
+        });
+        console.log(oldImages);
+        oldImages.forEach((image)=>{
+            const filename = image.imageUrl.split('/')[1];
+            deleteImage(filename);
+            console.log(filename," delete!");
+        })
 
         const newReview = await database.review.update({
             where:{
@@ -77,6 +92,9 @@ class ReviewService{
                 content:props.content,
                 score:props.score,
                 keywords:{
+                    deleteMany:{
+                        reviewId,reviewId,
+                    },
                     createMany:{
                         data:props.keywords.map((keyword)=>({
                             name:keyword,
@@ -85,6 +103,9 @@ class ReviewService{
                     }
                 },
                 tags:{
+                    deleteMany:{
+                        reviewId:reviewId
+                    },
                     createMany:{
                         data:props.tags.map((tag)=>({
                             name:tag,
@@ -93,6 +114,9 @@ class ReviewService{
                     }
                 },
                 reviewImages:{
+                    deleteMany:{
+                        reviewId:reviewId,
+                    },
                     createMany:{
                         data:props.images.map((image)=>({imageUrl:image}))
                     }
@@ -139,7 +163,7 @@ class ReviewService{
         if(review.userId!==userId) throw{status:403,message:"권한이 없습니다."};
 
         
-        await database.review.delete({
+        const deletedReview = await database.review.delete({
             where:{
                 id:review.id
             },
@@ -147,6 +171,11 @@ class ReviewService{
                 reviewImages:true,
                 reviewLikes:true,
             }
+        })
+
+        deletedReview.reviewImages.map((image)=>{
+            const filename = image.imageUrl.split('/')[1];
+            deleteImage(filename);
         })
 
         const store = await storeService.findStoreByID(review.storeId);
