@@ -19,6 +19,16 @@ export class AuthService{
         
         if(emailExist) throw { status: 400, message: "이미 가입되어있는 이메일 입니다."};
 
+        const nicknameExist = await this.userService.checkUserByNickname(props.nickname);
+
+        if(nicknameExist) throw { status: 400, message:"이미 존재하는 닉네임입니다."};
+
+        if(props.university_email){
+            const uniEmailExist = await this.userService.checkUserByUniEmail(props.university_email);
+
+            if(uniEmailExist) throw { status: 400, message:"이미 존재하는 학교이메일 입니다."};
+        }
+
         //createDTO사용해서 유저 생성
         const newUserId = await this.userService.createUser(
             new CreateUserDTO({
@@ -101,6 +111,31 @@ export class AuthService{
         };
     }
 
+    async searchUniversities(word) {
+        const universities = await database.university.findMany({
+          where: {
+            name: {
+              contains: word,
+            },
+          },
+          include: {
+            campers: true,
+          },
+        });
+      
+        const searchResults = universities.map((university) => {
+          return {
+            universityName: university.name,
+            campers: university.campers.map((camper) => ({
+                camperId: camper.id,
+                camperName: camper.name,
+            })),
+          };
+        });
+      
+        return searchResults;
+      }
+
     async deleteUser(userId) {
         const user = await database.user.findUnique({
             where: {
@@ -125,7 +160,7 @@ export class AuthService{
           );
 
         const mailOptions = {
-            from: "5959kop@naver.com",
+            from: "bobmeokgongofficial@naver.com",
             to: email,
             subject:"임시 비밀번호 발급",
             html: '<h1>임시 비밀번호 입니다. 해당 비밀번호로 로그인 후 비밀번호를 변경해 주세요.</h1>' + randomPasswd
@@ -149,7 +184,7 @@ export class AuthService{
 
     async sendMail(university_email, authNum) {
         const mailOptions = {
-            from: "5959kop@naver.com",
+            from: "bobmeokgongofficial@naver.com",
             to: university_email,
             subject:"이메일 인증 번호",
             html: '<h1>인증번호를 입력해주세요</h1>' + authNum

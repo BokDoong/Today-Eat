@@ -314,6 +314,19 @@ export class UserService {
     return user;
   }
 
+  // 닉네임 중복 확인
+  async checkUserByNickname(nickname){
+    const user = await database.user.findUnique({
+      where: {
+        nickname,
+      },
+    });
+
+    if(!user) return false;
+
+    return user;
+  }
+
   //학교 이메일 확인
   async checkUserByUniEmail(university_email){
     const user = await database.user.findUnique({
@@ -334,11 +347,13 @@ export class UserService {
         email: props.email,
         name: props.name,
         nickname: props.nickname,
+        university_email: props.university_email,
         classOf:props.classOf,
         imageURL:props.imageURL,
         phoneNumber:props.phoneNumber,
         password:props.password,
         campersId:props.campersId,
+        isEmailAuth: props.isEmailAuth,
       },
     });
     

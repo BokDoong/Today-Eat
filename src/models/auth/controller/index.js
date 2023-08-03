@@ -27,6 +27,7 @@ class AuthController {
         this.router.post("/email-auth", this.emailAuth.bind(this));
         this.router.post("/delete-user", this.deleteUser.bind(this));
         this.router.post("/password-reset", this.passwordReset.bind(this));
+        this.router.get("/searchUniversities", this.searchUniversities.bind(this));
     }
 
     // 회원가입
@@ -47,6 +48,7 @@ class AuthController {
                     classOf: body.classOf,
                     phoneNumber: body.phoneNumber,
                     imageURL: filePath,
+                    isEmailAuth: body.isEmailAuth,
                     campersId: body.campersId,
                     password: body.password,
                 })
@@ -136,7 +138,9 @@ class AuthController {
                     res.status(500).json({ message: "Redis에서 인증번호 가져오기 오류" });
                 } else {
                 if (authNum === storedAuthNum) {
-                    this.UserService.updateEmailAuthStatus(req.user.id, university_email);
+                    if(req.user.id){
+                        this.UserService.updateEmailAuthStatus(req.user.id, university_email);
+                    }
                     res.status(200).json({ message: "인증 성공"});
                 } else {
                     res.status(404).json({ message: "인증번호가 일치하지 않습니다." });
@@ -169,6 +173,17 @@ class AuthController {
 
             res.status(200).json({message:"성공"});
 
+        } catch(err) {
+            next(err);
+        }
+    }
+
+    async searchUniversities(req, res, next) {
+        try{
+            const searchWord = req.query.keyword;
+            const campers = await this.authService.searchUniversities(searchWord);
+
+            res.status(200).json(campers);
         } catch(err) {
             next(err);
         }
