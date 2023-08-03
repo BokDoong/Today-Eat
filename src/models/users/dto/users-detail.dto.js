@@ -1,8 +1,11 @@
+import { CampersDTO } from "../dto/campers"
+
 export class UserDetailDTO {
   id;
   name;
   nickname;
   email;
+  university_email;
   imageURL;
   campers;
   isEmailAuth;
@@ -12,10 +15,11 @@ export class UserDetailDTO {
     this.name = props.name;
     this.nickname = props.nickname;
     this.email = props.email;
+    this.university_email = props.university_email;
     this.imageURL = props.imageURL;
     this.isEmailAuth = props.isEmailAuth;
     
-    // Null 허용(임시 적용)
+    // Null 허용
     if(props.campers == null) {
       this.campers = null;
     } else {
