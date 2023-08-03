@@ -22,7 +22,7 @@ class StoreService{
                 return store.id;
             })
             let ranks = [];
-            const keywords = ["밥약","분위기","혼밥","단체","술약속"];
+            const keywords = ["밥약","가성비","혼밥","단체","술약속"];
 
             for(const keyword of keywords){
                 const count = await this.getKeywordCount(keyword,storeIds);
@@ -79,7 +79,7 @@ class StoreService{
         const userId = user.id;
         const campersId = user.campersId;
         let ranks = [];
-        const keywords = ["밥약","분위기","혼밥","단체","술약속"];
+        const keywords = ["밥약","가성비","혼밥","단체","술약속"];
 
         for(const keyword of keywords){
             const rank = await database.tagRank.findMany({
@@ -118,7 +118,7 @@ class StoreService{
     //랭킹 조회
     async getRank(userId,campersId){
         let ranks = [];
-        const keywords = ["밥약","분위기","혼밥","단체","술약속"];
+        const keywords = ["밥약","가성비","혼밥","단체","술약속"];
 
         for(const keyword of keywords){
             const rank = await database.tagRank.findMany({
@@ -256,7 +256,7 @@ class StoreService{
         const userId= user.id;
         const campersId = user.campersId;
         const stores = await this.findStoreByCampers(campersId);
-        const categorys = {'한식':[],'중식':[],'양식':[],'일식':[],'분식':[],'아시아':[],'패스트푸드':[],'레스토랑':[],'카페/디저트':[],'술':[]};
+        const categorys = {'한식':[],'중식':[],'양식':[],'일식':[],'분식':[],'아시아':[],'패스트푸드':[],'레스토랑':[],'카페/디저트':[],'술집':[]};
 
         for(const store of stores){
             const status = await this.getStatus(store.id);
@@ -633,7 +633,7 @@ class StoreService{
         }else if(category=="카페"||category=="간식"||category=="샐러드"){
             return '카페/디저트';
         }else if(category=="술집"){
-            return '술';
+            return '술집';
         }
     }
 
