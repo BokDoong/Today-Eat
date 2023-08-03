@@ -10,11 +10,11 @@ export class RegisterDTO{
     university_email;
     password;
     nickname;
-    classOf;
     imageURL;
     phoneNumber;
     campersId;
     isEmailAuth;
+    agreement;
 
     constructor(props){
         this.email = props.email;
@@ -22,11 +22,19 @@ export class RegisterDTO{
         this.university_email = props.university_email;
         this.password = props.password;
         this.nickname = props.nickname;
-        this.classOf = props.classOf;
         this.imageURL = props.imageURL;
         this.phoneNumber = props.phoneNumber;
         this.isEmailAuth = props.isEmailAuth;
         this.campersId = props.campersId;
+        this.agreement = props.agreement;
+    }
+
+    async agreementCheck() {
+        if(this.agreement == "true") {
+            return true;
+        }
+
+        return false;        
     }
 
     async hashPassword() {

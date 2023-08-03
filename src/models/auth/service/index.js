@@ -33,7 +33,7 @@ export class AuthService{
         const newUserId = await this.userService.createUser(
             new CreateUserDTO({
                 ...props,
-
+                agreement: await props.agreementCheck(),
                 password: await props.hashPassword(),
             })
         );

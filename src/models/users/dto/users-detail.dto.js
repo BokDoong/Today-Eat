@@ -9,6 +9,7 @@ export class UserDetailDTO {
   imageURL;
   campers;
   isEmailAuth;
+  agreement;
 
   constructor(props) {
     this.id = props.id;
@@ -18,6 +19,7 @@ export class UserDetailDTO {
     this.university_email = props.university_email;
     this.imageURL = props.imageURL;
     this.isEmailAuth = props.isEmailAuth;
+    this.agreement = props.agreement;
     
     // Null 허용
     if(props.campers == null) {

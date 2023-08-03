@@ -45,12 +45,12 @@ class AuthController {
                     name: body.name,
                     university_email: body.university_email,
                     nickname: body.nickname,
-                    classOf: body.classOf,
                     phoneNumber: body.phoneNumber,
                     imageURL: filePath,
                     isEmailAuth: body.isEmailAuth,
                     campersId: body.campersId,
                     password: body.password,
+                    agreement: body.agreement,
                 })
             );
 

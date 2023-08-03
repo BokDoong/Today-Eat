@@ -18,8 +18,8 @@ model User{
   password String
   name String
   nickname String @unique
-  classOf String
   imageURL String?
+  agreement Boolean @default(false)
 
   phoneNumber String @db.Char(11)
   isEmailAuth Int @db.TinyInt() @default(0)
@@ -228,11 +228,12 @@ model Notices{
   type Type
 }
 
-// NOTICE: 공지사항, FAQ: FAQ, TERMS: 이용시 약관
+// NOTICE: 공지사항, FAQ: FAQ, TERMS: 이용시 약관, MARKETING: 마켓팅 약관
 enum Type {
   NOTICE
   FAQ
   TERMS
+  MARKETING
 }
 
 model TagRank{
