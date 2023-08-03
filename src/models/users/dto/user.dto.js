@@ -2,14 +2,14 @@ import { CampersDTO } from "./campers";
 
 export class UserDTO {
   id;
-  name;
+  nickname;
   imageURL;
   campers;
   isEmailAuth;
 
   constructor(props) {
     this.id = props.id;
-    this.name = props.name;
+    this.nickname = props.nickname;
     this.imageURL = props.imageURL;
     this.isEmailAuth = props.isEmailAuth;
     
