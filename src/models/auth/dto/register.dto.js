@@ -14,6 +14,7 @@ export class RegisterDTO{
     imageURL;
     phoneNumber;
     campersId;
+    isEmailAuth;
 
     constructor(props){
         this.email = props.email;
@@ -24,6 +25,7 @@ export class RegisterDTO{
         this.classOf = props.classOf;
         this.imageURL = props.imageURL;
         this.phoneNumber = props.phoneNumber;
+        this.isEmailAuth = props.isEmailAuth;
         this.campersId = props.campersId;
     }
 
