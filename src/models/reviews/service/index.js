@@ -255,10 +255,10 @@ class ReviewService{
             }));
             const likeCount = (await this.findLikeByReview(review.id)).length;
             const createdDate = await this.getCreatedDate(review.createdAt);
-            const userName = (await this.userService.findUserById(userId)).name;
+            const nickname = (await this.userService.findUserById(userId)).nickname;
             let reviewImages = await this.findReviewImagesByReviewId(review.id);
             reviewImages = reviewImages.map((image)=>image.imageUrl);
-            return new MyReviewDTO({...review,tags,likeCount,createdDate,userName,reviewImages});
+            return new MyReviewDTO({...review,tags,likeCount,createdDate,nickname,reviewImages});
         }))
 
         return details;
@@ -330,9 +330,9 @@ class ReviewService{
         
         let details = [];
         for(const review of reviews){
-            const userName = (await this.userService.findUserById(review.userId)).name;
+            const nickname = (await this.userService.findUserById(review.userId)).nickname;
             const createdDate = await this.getCreatedDate(review.createdAt);
-            details.push(new ReviewDTO({...review,userName,createdDate}));
+            details.push(new ReviewDTO({...review,nickname,createdDate}));
             
         }
 

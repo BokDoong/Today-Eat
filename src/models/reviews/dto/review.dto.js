@@ -1,6 +1,6 @@
 export class ReviewDTO{
     reviewId;
-    userName;
+    nickname;
     imageUrls;
     score;
     tags;
@@ -10,7 +10,7 @@ export class ReviewDTO{
 
     constructor(props) {
         this.reviewId = props.id;
-        this.userName = props.userName;
+        this.nickname = props.nickname;
         this.imageUrls = props.imageUrls;
         this.score = props.score;
         this.tags = props.tags.map((tag)=>tag.name);

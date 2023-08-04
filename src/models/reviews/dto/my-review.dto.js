@@ -1,6 +1,6 @@
 export class MyReviewDTO{
     id;
-    userName;
+    nickname;
     score;
     content;
     tags;
@@ -16,6 +16,6 @@ export class MyReviewDTO{
         this.images = props.reviewImages;
         this.likeCount = props.likeCount;
         this.createdDate = props.createdDate;
-        this.userName = props.userName;
+        this.nickname = props.nickname;
     }
 }
