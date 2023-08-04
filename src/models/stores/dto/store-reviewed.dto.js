@@ -7,7 +7,7 @@ export class StoreReviewedDTO{
     reviewCount;
     time;
     imageUrl;
-    reviewSample;
+    reviewContent;
     isWishlist;
     category;
 
@@ -20,7 +20,7 @@ export class StoreReviewedDTO{
         this.status = props.status;
         this.score = props.score;
         this.reviewCount = props.reviewCount;
-        this.reviewSample = props.reviewSample;
+        this.reviewContent = props.reviewContent;
         this.isWishlist = props.isWishlist;
         this.category = props.category;
     }
