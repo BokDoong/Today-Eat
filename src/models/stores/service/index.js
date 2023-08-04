@@ -487,17 +487,17 @@ class StoreService{
         const store = await this.findStoreByID(storeId);
         const category = await this.changeCategory(store.category);
         const status = await this.getStatus(storeId);
-        const distance = await this.convertDistanceToTime(store.distance);
+        const time = await this.convertDistanceToTime(store.distance);
 
         const days = ['sunClose','monClose','tueClose','wedClose','thuClose','friClose','satClose'];
         const today = days[new Date().getDay()];
-        let closeTime
-        const time = await this.getBussinessHourByStore(storeId);
-        if(time)closeTime = time[today];
+        let closeTime = null;
+        const businessHour = await this.getBussinessHourByStore(storeId);
+        if(businessHour)closeTime = businessHour[today];
         const keywords = await this.getRankByStore(storeId);
         const tags = await this.findTagByStore(storeId);
 
-        return new StoreDetailDTO({...store,status,closeTime,keywords,tags,category,distance});
+        return new StoreDetailDTO({...store,status,closeTime,keywords,tags,category,time});
     }
 
 
