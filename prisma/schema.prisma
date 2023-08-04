@@ -24,8 +24,8 @@ model User{
   phoneNumber String @db.Char(11)
   isEmailAuth Int @db.TinyInt() @default(0)
 
-  campersId String?
-  campers Campers? @relation(fields: [campersId],references: [id])
+  campersId String
+  campers Campers @relation(fields: [campersId],references: [id])
 
   reviewLikes ReviewLike[]
   wishLists WishList[]

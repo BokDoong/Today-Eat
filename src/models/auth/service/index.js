@@ -14,18 +14,31 @@ export class AuthService{
         this.userService = new UserService();
     }
 
+    // 회원가입
     async register(props){
+
+        if(!props.name) throw { status:400, message:"이름을 입력해 주세요."};
+        if(props.name.length > 8 ) throw { status: 400, message:"이름의 길이는 최대 8자 입니다."};
+
         const emailExist = await this.userService.checkUserByEmail(props.email);
-        
         if(emailExist) throw { status: 400, message: "이미 가입되어있는 이메일 입니다."};
 
-        const nicknameExist = await this.userService.checkUserByNickname(props.nickname);
+        const emailPattern = /^[A-Za-z0-9_\.\-]+@[A-Za-z0-9\-]+\.[A-Za-z0-9\-]+/;
+        const isEmailVaild = emailPattern.test(props.email);
+        
+        if(!isEmailVaild) throw {status: 400, message: "이메일 형식이 아닙니다."};
 
+        if(!props.nickname) throw { status: 400, message:"닉네임을 입력해 주세요."};
+
+        const nicknamePattern = /[~!@#$%^&*()_+|<>?:{}]/;
+        if(nicknamePattern.test(props.nickname)) throw { status:400, message:"특수문자는 사용 불가능 합니다."};
+        if(props.nickname.length > 8) throw { status: 400, message:"닉네임의 길이는 최대 8자 입니다."};
+
+        const nicknameExist = await this.userService.checkUserByNickname(props.nickname);
         if(nicknameExist) throw { status: 400, message:"이미 존재하는 닉네임입니다."};
 
         if(props.university_email){
             const uniEmailExist = await this.userService.checkUserByUniEmail(props.university_email);
-
             if(uniEmailExist) throw { status: 400, message:"이미 존재하는 학교이메일 입니다."};
         }
 
@@ -33,13 +46,12 @@ export class AuthService{
         const newUserId = await this.userService.createUser(
             new CreateUserDTO({
                 ...props,
-                agreement: await props.agreementCheck(),
+
                 password: await props.hashPassword(),
             })
         );
         
         const accessToken = jwt.sign({ id: newUserId }, process.env.JWT_KEY,{
-
             expiresIn:"2h",
         });
         const refreshToken = jwt.sign({ id: newUserId }, process.env.JWT_KEY,{
@@ -53,13 +65,13 @@ export class AuthService{
         return { accessToken, refreshToken };
     }
 
+    // 로그인
     async login(props){
-        const emailExist = await this.userService.checkUserByEmail(props.email);
 
-        if(!emailExist) throw { status:404, message:"이메일을 잘못 입력했습니다."};
+        const emailExist = await this.userService.checkUserByEmail(props.email);
+        if(!emailExist) throw { status:400, message:"이메일을 잘못 입력했습니다."};
 
         const isPasswdCorrect = await props.comparePassword(emailExist.password);
-
         if(!isPasswdCorrect) throw { status:400, message:"비밀번호를 잘못 입력했습니다."};
         
         const accessToken = jwt.sign({ id: emailExist.id }, process.env.JWT_KEY,{
@@ -75,7 +87,9 @@ export class AuthService{
         return { accessToken, refreshToken };
     }
 
+    // 로그아웃
     async logout(email, accessToken) {
+
         const emailExist = await this.userService.checkUserByEmail(email);
         const expiration = await this.getExpiration(accessToken);
 
@@ -85,8 +99,9 @@ export class AuthService{
         await redisClient.expire(accessToken, expiration);
     }
 
-
+    // 토큰 재발급
     async refresh(accessToken, refreshToken) {
+
         const accessTokenPayload = jwt.verify(accessToken, process.env.JWT_KEY,{
             ignoreExpiration: true,
         });
@@ -105,13 +120,18 @@ export class AuthService{
             expiresIn:"14d",
         });
 
+        await redisClient.set(user.id, newRefreshToken);
+        await redisClient.expire(user.id, 60 * 60 * 24 * 14);
+
         return{
             accessToken: newAccessToken,
             refreshToken: newRefreshToken,
         };
     }
 
+    // 대학교 검색
     async searchUniversities(word) {
+
         const universities = await database.university.findMany({
           where: {
             name: {
@@ -127,16 +147,18 @@ export class AuthService{
           return {
             universityName: university.name,
             campers: university.campers.map((camper) => ({
-                camperId: camper.id,
-                camperName: camper.name,
+                campersId: camper.id,
+                campersName: camper.name,
             })),
           };
         });
       
         return searchResults;
-      }
-
+    }
+    
+    // 회원 탈퇴
     async deleteUser(userId) {
+
         const user = await database.user.findUnique({
             where: {
               id: userId,
@@ -150,6 +172,7 @@ export class AuthService{
         });
     }
 
+    // 비밀번호 초기화
     async passwordReset(email) {
 
         const randomPasswd = Math.random().toString(36).slice(2);
@@ -168,7 +191,7 @@ export class AuthService{
 
         const emailExist = await this.userService.checkUserByEmail(email);
 
-        if(!emailExist) throw { status:"404", message:"해당 사용자를 찾을 수 없습니다."};
+        if(!emailExist) throw { status:404, message:"해당 사용자를 찾을 수 없습니다."};
 
         await smtpTransport.sendMail(mailOptions);
         await database.user.update({
@@ -182,6 +205,7 @@ export class AuthService{
         
     }
 
+    // 이메일 전송
     async sendMail(university_email, authNum) {
         const mailOptions = {
             from: "bobmeokgongofficial@naver.com",
@@ -197,13 +221,14 @@ export class AuthService{
         const emailPattern = /@.*ac\.kr$/;
         const isEmailVaild = emailPattern.test(university_email);
         
-        if(!isEmailVaild) throw {status: 404, message: "학교 이메일 형식이 아닙니다."};
+        if(!isEmailVaild) throw {status: 400, message: "학교 이메일 형식이 아닙니다."};
 
         await smtpTransport.sendMail(mailOptions);
         await redisClient.set(university_email, authNum);
         await redisClient.expire(university_email, 180);
     }
 
+    // 인증번호 생성
     async generateRandomNum(){
         const min = 1000;
         const max = 9999;
@@ -212,6 +237,7 @@ export class AuthService{
         return randomNum;
     }
 
+    // accessToken 만료시간
     async getExpiration(accessToken){
         try {
             const decodedToken = jwt.verify(accessToken, process.env.JWT_KEY);

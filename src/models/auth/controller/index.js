@@ -85,9 +85,9 @@ class AuthController {
     // 로그아웃
     async logout(req, res, next) {
         try{
-            const body = req.body;
+            const accessToken = req.header("Authorization")?.split(" ")[1];
 
-            await this.authService.logout(req.user.email, body.accessToken);
+            await this.authService.logout(req.user.email, accessToken);
 
             res.status(200).json({message:"logout 성공"});
         } catch(err) {
@@ -165,6 +165,7 @@ class AuthController {
         }
     }
 
+    // 비밀번호 초기화
     async passwordReset(req, res, next) {
         try{
             const { email } = req.body;
@@ -178,6 +179,7 @@ class AuthController {
         }
     }
 
+    // 대학교 검색
     async searchUniversities(req, res, next) {
         try{
             const searchWord = req.query.keyword;
