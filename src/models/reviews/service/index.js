@@ -52,7 +52,7 @@ class ReviewService{
         })
 
         const store = await storeService.findStoreByID(props.storeId);
-        if(!store.imageUrl){
+        if(!store.imageUrl||store.imageUrl===""||store.imageUrl===null){
             await database.store.update({
                 where:{
                     id:store.id,
@@ -77,11 +77,9 @@ class ReviewService{
                 reviewId:reviewId,
             }
         });
-        console.log(oldImages);
         oldImages.forEach((image)=>{
             const filename = image.imageUrl.split('/')[1];
             deleteImage(filename);
-            console.log(filename," delete!");
         })
 
         const newReview = await database.review.update({
@@ -127,27 +125,34 @@ class ReviewService{
         const store = await storeService.findStoreByID(oldReview.storeId);
 
         const newImages = await this.findReviewImages(store.id);
-        if(newImages.imageCount!==0){
-            const newImage = newImages.imageURLs[0];
-            await database.store.update({
-                where:{
-                    id:store.id
-                },
-                data:{
-                    imageUrl:newImage
-                }
-            })
-        }else{
-            await database.store.update({
-                where:{
-                    id:store.id
-                },
-                data:{
-                    imageUrl:null,
-                }
-            })
-        }
-
+        let imageCheck = false;
+        oldImages.map((image)=>{
+            if(image.imageUrl===store.imageUrl){
+                imageCheck = true;
+            }
+        })
+        if(imageCheck){
+            if(newImages.imageCount!==0){
+                const newImage = newImages.imageURLs[0];
+                await database.store.update({
+                    where:{
+                        id:store.id
+                    },
+                    data:{
+                        imageUrl:newImage
+                    }
+                })
+            }else{
+                await database.store.update({
+                    where:{
+                        id:store.id
+                    },
+                    data:{
+                        imageUrl:null,
+                    }
+                })
+            }
+        }   
         return newReview.id;
     }
 
@@ -181,26 +186,34 @@ class ReviewService{
         const store = await storeService.findStoreByID(review.storeId);
         const newImages = await this.findReviewImages(store.id);
         
-        if(newImages.imageCount!==0){
-            const newImage = newImages.imageURLs[0];
-            await database.store.update({
-                where:{
-                    id:store.id
-                },
-                data:{
-                    imageUrl:newImage
-                }
-            })
-        }else{
-            await database.store.update({
-                where:{
-                    id:store.id
-                },
-                data:{
-                    imageUrl:null,
-                }
-            })
-        }
+        let imageCheck = false;
+        deletedReview.reviewImages.map((image)=>{
+            if(image.imageUrl===store.imageUrl){
+                imageCheck = true;
+            }
+        })
+        if(imageCheck){
+            if(newImages.imageCount!==0){
+                const newImage = newImages.imageURLs[0];
+                await database.store.update({
+                    where:{
+                        id:store.id
+                    },
+                    data:{
+                        imageUrl:newImage
+                    }
+                })
+            }else{
+                await database.store.update({
+                    where:{
+                        id:store.id
+                    },
+                    data:{
+                        imageUrl:null,
+                    }
+                })
+            }
+        }   
     }
 
     //리뷰 좋아요

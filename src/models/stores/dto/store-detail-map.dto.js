@@ -8,7 +8,7 @@ export class StoreDetailMapDTO{
     reviewCount;
     time;
     reviewImage;
-    reviewSample;
+    reviewContent;
     isWishlist;
 
     constructor(props){
@@ -21,7 +21,7 @@ export class StoreDetailMapDTO{
         this.score = props.score;
         this.reviewImage = props.reviewImage;
         this.reviewCount = props.reviewCount;
-        this.reviewSample = props.reviewSample;
+        this.reviewContent = props.reviewContent;
         this.isWishlist = props.isWishlist;
     }
 }

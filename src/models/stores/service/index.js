@@ -1,16 +1,13 @@
 import database from "../../../database";
 import {StoreCardDTO,StoreCategoryDTO,StoreDetailDTO,StoreDetailMapDTO,StoreMapDTO,StoreRankDTO, StoreRecommendDTO, StoreReviewedDTO, StoreSearchDTO, StoreWishlistDTO} from "../dto";
 import {reviewService} from "../../reviews/service";
+import {Prisma} from '@prisma/client';
 
 class StoreService{
 
     //랭킹 갱신
     async updateRank(){
-        let first = true;
-        const check = await database.tagRank.findFirst();
-        if(check){
-            first = false;
-        }
+        await database.tagRank.deleteMany();
         let campersList = await database.campers.findMany({
             select:{
                 id:true,
@@ -32,29 +29,8 @@ class StoreService{
             for(let i=0;i<5;i++){
                 const data = ranks[i];
                 for(let j=0;j<data.length;j++){
-                    await database.tagRank.upsert({
-                        where:{
-                            tag_rank_campersId:{
-                                tag:keywords[i],
-                                rank:j+1,
-                                campersId:campers.id,
-                            },
-                        },
-                        update:{
-                            campers:{
-                                connect:{
-                                    id:campers.id,
-                                }                                    
-                            },
-                            store:{
-                                connect:{
-                                    id:data[j],
-                                },
-                            },
-                            rank:j+1,
-                            tag:keywords[i],
-                        },
-                        create:{
+                    await database.tagRank.create({
+                        data:{
                             campers:{
                                 connect:{
                                     id:campers.id,
@@ -101,11 +77,15 @@ class StoreService{
             const stores = await Promise.all(
                 data.map(async (id)=>{
                     const props = await this.findStoreByID(id);
+                    let imageURL = null;
+                    if(props.hasOwnProperty("imageUrl")){
+                        imageURL = props.imageUrl;
+                    } 
                     const tags = Object.keys((await this.findTagByStore(id))).slice(0,3);
                     const isWishlist = await this.checkWishlist(userId,id);
                     const category = await this.changeCategory(props.category);
                     const time = await this.convertDistanceToTime(props.distance);
-                    const store = new StoreCardDTO({...props,tags,isWishlist,category,time});
+                    const store = new StoreCardDTO({...props,imageURL,tags,isWishlist,category,time});
                     return store;
                 })
             )
@@ -141,14 +121,19 @@ class StoreService{
             const stores = await Promise.all(
                 data.map(async (id)=>{
                     const props = await this.findStoreByID(id);
+                    let imageURL = null;
+                    if(props.hasOwnProperty("imageUrl")){
+                        imageURL = props.imageUrl;
+                    } 
                     const status = await this.getStatus(id);
                     const score = await this.getAvgScore(id);
                     const reviewCount = await reviewService.getReviewCount(id);
                     const reviewSample = await reviewService.findReviewSample(id);
+                    const reviewContent = reviewSample?reviewSample.content:null;
                     const wishlist = await this.checkWishlist(userId,id);
                     const category = await this.changeCategory(props.category);
                     const time = await this.convertDistanceToTime(props.distance);
-                    const store = new StoreRankDTO({...props,status,score,reviewCount,reviewSample:reviewSample.content,wishlist,category,time});
+                    const store = new StoreRankDTO({...props,imageURL,status,score,reviewCount,reviewContent,wishlist,category,time});
                     return store;
                 })
             )
@@ -208,9 +193,10 @@ class StoreService{
             const score = await this.getAvgScore(storeId);
             const reviewCount = await reviewService.getReviewCount(storeId);
             const reviewSample = await reviewService.findReviewSample(storeId);
+            const reviewContent = reviewSample?reviewSample.content:null;
             const rank = await this.getRankByStore(storeId);
             const time = await this.convertDistanceToTime(store.distance);
-            const dto = new StoreWishlistDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,rank,category,time});   
+            const dto = new StoreWishlistDTO({...store,status,score,reviewCount,reviewContent,rank,category,time});   
             storeList.push(dto);     
         }
         return storeList;
@@ -263,10 +249,11 @@ class StoreService{
             const score = await this.getAvgScore(store.id);
             const reviewCount = await reviewService.getReviewCount(store.id);
             const reviewSample = await reviewService.findReviewSample(store.id);
+            const reviewContent = reviewSample?reviewSample.content:null;
             const isWishlist = await this.checkWishlist(store.id);
             const rank = await this.getRankByStore(store.id);
             const time = await this.convertDistanceToTime(store.distance);
-            const dto = new StoreCategoryDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,isWishlist,rank,time});
+            const dto = new StoreCategoryDTO({...store,status,score,reviewCount,reviewContent,isWishlist,rank,time});
             
             categorys[await this.changeCategory(store.category)].push(dto);
         }
@@ -290,53 +277,109 @@ class StoreService{
         const campersId = user.campersId;
         const dst = distance+200;
 
-        let stores
+        let input = Prisma.UserCreateInput;
         if(!distance){
-            stores = await database.store.findMany({
-                select:{
-                    id:true,
-                    x:true,
-                    y:true,
-                },
-                where:{
-                    campersId:campersId,
-                    keywords:{
-                        some:{
-                            name:{
-                                in:keyword,
-                            }
+            if(!keyword){
+                if(!category){
+                    input = {
+                        campersId:campersId,
+                    }
+                }else{
+                    input = {
+                        campersId:campersId,
+                        category:{
+                            in:category,
                         }
-                    },
-                    category:{
-                        in:category,
                     }
                 }
-            })
+            }else{
+                if(!category){
+                    input = {
+                        campersId:campersId,
+                        keywords:{
+                            some:{
+                                name:{
+                                    in:keyword,
+                                }
+                            }
+                        },
+                    }
+                }else{
+                    input = {
+                        campersId:campersId,
+                        keywords:{
+                            some:{
+                                name:{
+                                    in:keyword,
+                                }
+                            }
+                        },
+                        category:{
+                            in:category,
+                        }
+                    }
+                }
+            }
         }else{
-            stores = await database.store.findMany({
-                select:{
-                    id:true,
-                    x:true,
-                    y:true,
-                },
-                where:{
-                    campersId:campersId,
-                    distance:{
-                        lte:dst,
-                    },
-                    keywords:{
-                        some:{
-                            name:{
-                                in:keyword,
-                            }
+            if(!keyword){
+                if(!category){
+                    input = {
+                        campersId:campersId,
+                        distance:{
+                            lte:dst,
+                        },
+                    }
+                }else{
+                    input = {
+                        campersId:campersId,
+                        distance:{
+                            lte:dst,
+                        },
+                        category:{
+                            in:category,
                         }
-                    },
-                    category:{
-                        in:category,
                     }
                 }
-            })
+            }else{
+                if(!category){
+                    input = {
+                        campersId:campersId,
+                        keywords:{
+                            some:{
+                                name:{
+                                    in:keyword,
+                                }
+                            }
+                        },
+                    }
+                }else{
+                    input = {
+                        campersId:campersId,
+                        keywords:{
+                            some:{
+                                name:{
+                                    in:keyword,
+                                }
+                            }
+                        },
+                        category:{
+                            in:category,
+                        }
+                    }
+                }
+            }
         }
+
+        let stores
+        stores = await database.store.findMany({
+            select:{
+                id:true,
+                x:true,
+                y:true,
+            },
+            where:input,
+        })
+       
         let details = [];
         await Promise.all(stores.map(async (store)=>{
             const isWishlist = await this.checkWishlist(userId,store.id);
@@ -361,9 +404,11 @@ class StoreService{
         const score = await this.getAvgScore(storeId);
         const reviewCount = await reviewService.getReviewCount(storeId);
         const reviewSample = await reviewService.findReviewSample(storeId);
+        const reviewContent = reviewSample?reviewSample.content:null;
+        const reviewImage = reviewSample?reviewSample.reviewImages[0]:null;
         const rank = await this.getRankByStore(storeId);
         const time = await this.convertDistanceToTime(store.distance);
-        const dto = new StoreDetailMapDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,reviewImage:reviewSample.reviewImages[0],rank,category,time});   
+        const dto = new StoreDetailMapDTO({...store,status,score,reviewCount,reviewContent,reviewImage,rank,category,time});   
         return dto;
     }
 
@@ -425,12 +470,13 @@ class StoreService{
             const score = await this.getAvgScore(storeId);
             const reviewCount = await reviewService.getReviewCount(storeId);
             const reviewSample = await reviewService.findReviewSample(storeId);
+            const reviewContent = reviewSample?reviewSample.content:null;
             const rank = await this.getRankByStore(storeId);    
             const isWishlist = await this.checkWishlist(userId,storeId);
             const category = await this.changeCategory(store.category);
             const time = await this.convertDistanceToTime(store.distance);
 
-            return new StoreReviewedDTO({...store,status,score,reviewCount,reviewSample:reviewSample.content,rank,isWishlist,category,time})
+            return new StoreReviewedDTO({...store,status,score,reviewCount,reviewContent,rank,isWishlist,category,time})
         }))
 
         return details;
@@ -545,7 +591,7 @@ class StoreService{
                 storeId:storeId,
             },
         });
-        if(!data)return;
+        if(!data)return null;
         const week = [['sunOpen','sunClose'],['monOpen','monClose'],['tueOpen','tueClose'], ['wedOpen','wedClose'],
         ['thuOpen','thuClose'], ['friOpen','friClose'], ['satOpen','satClose']];
         
@@ -585,6 +631,7 @@ class StoreService{
                 score:true,
             }
         })
+        if(!data._avg.score)return 0;
         return data._avg.score.toFixed(1);
     }
 

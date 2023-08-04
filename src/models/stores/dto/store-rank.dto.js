@@ -8,7 +8,7 @@ export class StoreRankDTO{
     reviewCount;
     imageURL;
     imageCount;
-    reviewSample;
+    reviewContent;
     wishlist;
 
     constructor(props) {
@@ -19,8 +19,8 @@ export class StoreRankDTO{
         this.status = props.status;
         this.score = props.score;
         this.reviewCount = props.reviewCount;
-        this.imageURL = props.imageUrl;
-        this.reviewSample = props.reviewSample;
+        this.imageURL = props.imageURL;
+        this.reviewContent = props.reviewContent;
         this.wishlist = props.wishlist;
     }
     
