@@ -487,7 +487,7 @@ class StoreService{
         const store = await this.findStoreByID(storeId);
         const category = await this.changeCategory(store.category);
         const status = await this.getStatus(storeId);
-        const distance = await this.convertDistanceToTime(props.distance);
+        const distance = await this.convertDistanceToTime(store.distance);
 
         const days = ['sunClose','monClose','tueClose','wedClose','thuClose','friClose','satClose'];
         const today = days[new Date().getDay()];
