@@ -2114,6 +2114,15 @@ append-field@^1.0.0:
   resolved "https://registry.npmjs.org/append-field/-/append-field-1.0.0.tgz"
   integrity sha512-klpgFSWLW1ZEs8svjfb7g4qWY0YS5imI82dTg+QahUvJ8YqAY0P10Uk8tTyh9ZGuYEZEMaeJYCF5BFuX552hsw==
 
+apple-auth@^1.0.9:
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/apple-auth/-/apple-auth-1.0.9.tgz#6fe8e31a6bef858387ba94ef018b792114527d12"
+  integrity sha512-nm3h/sXpwA6kyBWa1l8Sl3c8nusIQMnUklBL8eTUDb++LpF2k2GZ66OaDj5lba7Arw9JpHfuzewBF92mh9lNPQ==
+  dependencies:
+    axios "^0.21.1"
+    express "^4.17.1"
+    jsonwebtoken "^9.0.0"
+
 "aproba@^1.0.3 || ^2.0.0":
   version "2.0.0"
   resolved "https://registry.npmjs.org/aproba/-/aproba-2.0.0.tgz"
@@ -2176,6 +2185,13 @@ aws-sdk@^2.1428.0:
     util "^0.12.4"
     uuid "8.0.0"
     xml2js "0.5.0"
+
+axios@^0.21.1:
+  version "0.21.4"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.21.4.tgz#c67b90dc0568e5c1cf2b0b858c43ba28e2eda575"
+  integrity sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==
+  dependencies:
+    follow-redirects "^1.14.0"
 
 axios@^1.4.0:
   version "1.4.0"
@@ -2665,7 +2681,7 @@ events@1.1.1:
   resolved "https://registry.npmjs.org/events/-/events-1.1.1.tgz"
   integrity sha512-kEcvvCBByWXGnZy6JUlgAp2gBIUjfCAV6P6TgT1/aaQKcmuAEC4OZTV1I4EWQLz2gxZw76atuVyvHhTxvi0Flw==
 
-express@^4.18.2:
+express@^4.17.1, express@^4.18.2:
   version "4.18.2"
   resolved "https://registry.npmjs.org/express/-/express-4.18.2.tgz"
   integrity sha512-5/PsL6iGPdfQ/lKM1UuielYgv3BUoJfz1aUwU9vHZ+J7gyvwdQXFEBIEIaxeGf0GIcreATNyBExtalisDbuMqQ==
@@ -2750,7 +2766,7 @@ find-up@^3.0.0:
   dependencies:
     locate-path "^3.0.0"
 
-follow-redirects@^1.15.0:
+follow-redirects@^1.14.0, follow-redirects@^1.15.0:
   version "1.15.2"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.2.tgz#b460864144ba63f2681096f274c4e57026da2c13"
   integrity sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==
@@ -3223,7 +3239,7 @@ json5@^2.2.2:
   resolved "https://registry.npmjs.org/json5/-/json5-2.2.3.tgz"
   integrity sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==
 
-jsonwebtoken@^9.0.1:
+jsonwebtoken@^9.0.0, jsonwebtoken@^9.0.1:
   version "9.0.1"
   resolved "https://registry.npmjs.org/jsonwebtoken/-/jsonwebtoken-9.0.1.tgz"
   integrity sha512-K8wx7eJ5TPvEjuiVSkv167EVboBDv9PZdDoF7BgeQnBLVvZWW9clr2PsQHVJDTKaEIH5JBIwHujGcHp7GgI2eg==
