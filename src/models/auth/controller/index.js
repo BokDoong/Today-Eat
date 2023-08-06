@@ -6,6 +6,7 @@ import { UserService } from "../../users/service";
 import { imageUploader } from "../../../middleware"
 import AppleAuth from "apple-auth";
 import { appleKey } from "../../../utils";
+import fs from "fs";
 
 class AuthController {
     authService;
