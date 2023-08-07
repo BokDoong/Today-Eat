@@ -275,6 +275,7 @@ class StoreService{
     async getStoresOnMap(user,distance,keyword,category,isOpen){
         const userId = user.id;
         const campersId = user.campersId;
+        const campers = await this.findCampersByID(campersId);
         const dst = distance+200;
 
         let input = Prisma.UserCreateInput;
@@ -393,7 +394,7 @@ class StoreService{
             details.push(new StoreMapDTO({...store, isWishlist}));
         }))
 
-        return details;
+        return {campers:{x:campers.x,y:campers.y},stores:details};
     }
 
     //지도 페이지 가게 정보
@@ -504,6 +505,14 @@ class StoreService{
     /*-----------------------------------------------------------------------------------------------------*/
     /*-----------------------------------------------------------------------------------------------------*/
 
+    async findCampersByID(campersId){
+        const campers = await database.campers.findUnique({
+            where:{
+                id:campersId,
+            }
+        });
+        return campers;
+    }
 
     async convertDistanceToTime(distance){
         const dst = distance - 200;
