@@ -47,6 +47,7 @@ export class AuthService{
             new CreateUserDTO({
                 ...props,
 
+                agreement: await props.agreementCheck(),
                 password: await props.hashPassword(),
             })
         );

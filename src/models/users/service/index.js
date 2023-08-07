@@ -400,7 +400,6 @@ export class UserService {
         nickname: props.nickname,
         university_email: props.university_email,
         imageURL:props.imageURL,
-        phoneNumber:props.phoneNumber,
         password:props.password,
         campersId:props.campersId,
         isEmailAuth: props.isEmailAuth,

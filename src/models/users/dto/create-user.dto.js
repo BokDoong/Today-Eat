@@ -4,7 +4,6 @@ export class CreateUserDTO{
     password;
     nickname;
     imageURL;
-    phoneNumber;
     isEmailAuth;
     agreement;
     campersId;
@@ -17,7 +16,6 @@ export class CreateUserDTO{
         this.password = props.password;
         this.nickname = props.nickname;
         this.imageURL = props.imageURL;
-        this.phoneNumber = props.phoneNumber;
         this.isEmailAuth = props.isEmailAuth;
         this.agreement = props.agreement;
         this.campersId = props.campersId;

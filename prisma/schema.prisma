@@ -21,7 +21,6 @@ model User{
   imageURL String?
   agreement Boolean @default(false)
 
-  phoneNumber String @db.Char(11)
   isEmailAuth Int @db.TinyInt() @default(0)
 
   campersId String

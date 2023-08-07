@@ -11,7 +11,6 @@ export class RegisterDTO{
     password;
     nickname;
     imageURL;
-    phoneNumber;
     campersId;
     isEmailAuth;
     agreement;
@@ -23,7 +22,6 @@ export class RegisterDTO{
         this.password = props.password;
         this.nickname = props.nickname;
         this.imageURL = props.imageURL;
-        this.phoneNumber = props.phoneNumber;
         this.isEmailAuth = props.isEmailAuth;
         this.campersId = props.campersId;
         this.agreement = props.agreement;

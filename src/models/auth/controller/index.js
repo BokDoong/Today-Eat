@@ -49,7 +49,6 @@ class AuthController {
                     name: body.name,
                     university_email: body.university_email,
                     nickname: body.nickname,
-                    phoneNumber: body.phoneNumber,
                     imageURL: filePath,
                     isEmailAuth: body.isEmailAuth,
                     campersId: body.campersId,
