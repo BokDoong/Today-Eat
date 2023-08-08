@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { storeService } from "../service";
 import { UserService } from "../../users/service";
-import {storeData, campersData} from "../../../utils";
 
 class StoreController{
     router;
@@ -16,9 +15,6 @@ class StoreController{
     }
 
     init(){
-        this.router.get("/fetch-campers-data",campersData.bind(this));
-        this.router.get("/fetch-store-data",storeData.bind(this));
-        
         this.router.get("/rank-sample",this.getRankSample.bind(this));
         this.router.get("/rank",this.getRank.bind(this));
         this.router.get("/category",this.getStoreByCategory.bind(this));
@@ -149,6 +145,9 @@ class StoreController{
             let orderby = req.query.orderby;
             if(!orderby)orderby = "distance";
             const searchWord = req.query.keyword;
+
+            if(!searchWord)throw {status:400, message:"검색어를 입력해주세요."};
+
             const stores = await this.storeService.searchStore(user.campersId,searchWord,orderby);
 
             res.status(200).json(stores);
