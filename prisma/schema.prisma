@@ -105,7 +105,6 @@ model Store{
   y Float @db.Double
   distance Float @db.Double
   imageUrl String ?
-  place_id String ?
   category String
 
   campersId String
@@ -115,30 +114,9 @@ model Store{
   reviews Review[]
   keywords Keyword[]
   tags Tag[]
-  businessHour BusinessHour?
   tagRanks TagRank[]
 
   @@unique([name,campersId])
-}
-
-model BusinessHour{
-  storeId String @unique
-  store Store @relation(fields: [storeId],references: [id]) 
-
-  monOpen String
-  monClose String
-  tueOpen String
-  tueClose String
-  wedOpen String
-  wedClose String 
-  thuOpen String
-  thuClose String
-  friOpen String
-  friClose String
-  satOpen String
-  satClose String
-  sunOpen String
-  sunClose String
 }
 
 model Review{
@@ -146,7 +124,6 @@ model Review{
 
   content String @db.Text
   createdAt DateTime @default(now())
-  updatedAt DateTime?
   score Float @db.Double
 
   storeId String
