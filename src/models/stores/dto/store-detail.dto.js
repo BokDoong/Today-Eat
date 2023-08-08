@@ -5,7 +5,6 @@ export class StoreDetailDTO{
     imageUrl;
     keywords;
     tags;
-    status;
     closeTime;
     phoneNumber;
     address;
@@ -19,7 +18,6 @@ export class StoreDetailDTO{
         this.phoneNumber = props.phoneNumber;
         this.address = props.address;
         this.time = props.time;
-        this.status = props.status;
         this.closeTime = props.closeTime;
         this.keywords = props.keywords;
         this.tags = props.tags;

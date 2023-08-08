@@ -3,7 +3,6 @@ export class StoreDetailMapDTO{
     name;
     category;
     rank;
-    status;
     score;
     reviewCount;
     time;
@@ -17,7 +16,6 @@ export class StoreDetailMapDTO{
         this.category = props.category;
         this.time = props.time;
         this.rank = props.rank;
-        this.status = props.status;
         this.score = props.score;
         this.reviewImage = props.reviewImage;
         this.reviewCount = props.reviewCount;
