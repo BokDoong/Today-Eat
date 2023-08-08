@@ -249,9 +249,13 @@ class StoreService{
             const isWishlist = await this.checkWishlist(store.id);
             const rank = await this.getRankByStore(store.id);
             const time = await this.convertDistanceToTime(store.distance);
+            const category = await this.changeCategory(store.category);
             const dto = new StoreCategoryDTO({...store,score,reviewCount,reviewContent,isWishlist,rank,time});
-            
-            categorys[await this.changeCategory(store.category)].push(dto);
+
+            if(!category){
+                continue;
+            }
+            categorys[category].push(dto);
         }
         for(let category in categorys){
             categorys[category] = categorys[category].sort((a,b)=>{
@@ -623,6 +627,8 @@ class StoreService{
             return '카페/디저트';
         }else if(category=="술집"){
             return '술집';
+        }else{
+            return null;
         }
     }
 
