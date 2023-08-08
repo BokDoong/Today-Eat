@@ -117,8 +117,8 @@ class StoreController{
             if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
 
             const user = await this.userService.findUserById(req.user.id);
-            const { distance, keyword, category, isOpen } = req.body;
-            const stores = await this.storeService.getStoresOnMap(user,distance,keyword,category,isOpen);
+            const { distance, keyword, category } = req.body;
+            const stores = await this.storeService.getStoresOnMap(user,distance,keyword,category);
 
             res.status(200).json(stores);
         }catch(err){

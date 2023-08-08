@@ -272,7 +272,7 @@ class StoreService{
     }
 
     //지도 페이지 가게 목록
-    async getStoresOnMap(user,distance,keyword,category,isOpen){
+    async getStoresOnMap(user,distance,keyword,category){
         const userId = user.id;
         const campersId = user.campersId;
         const campers = await this.findCampersByID(campersId);
