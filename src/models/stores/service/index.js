@@ -71,7 +71,7 @@ class StoreService{
             const storeIds = rank.map((store)=>store.storeId);
             ranks.push(storeIds);
         }
-        let result = [];
+        let result = {};
         for(let i=0;i<5;i++){
             const data = ranks[i];
             const stores = await Promise.all(
@@ -89,7 +89,7 @@ class StoreService{
                     return store;
                 })
             )
-            result.push({stores:[...stores],tag:keywords[i]});
+            result[keywords[i]]=stores;
         }
 
         return result;
@@ -115,7 +115,7 @@ class StoreService{
             ranks.push(storeIds);
         }
 
-        let result = [];
+        let result = {};
         for(let i=0;i<5;i++){
             const data = ranks[i];
             const stores = await Promise.all(
@@ -125,7 +125,6 @@ class StoreService{
                     if(props.hasOwnProperty("imageUrl")){
                         imageURL = props.imageUrl;
                     } 
-                    const status = await this.getStatus(id);
                     const score = await this.getAvgScore(id);
                     const reviewCount = await reviewService.getReviewCount(id);
                     const reviewSample = await reviewService.findReviewSample(id);
@@ -133,11 +132,11 @@ class StoreService{
                     const wishlist = await this.checkWishlist(userId,id);
                     const category = await this.changeCategory(props.category);
                     const time = await this.convertDistanceToTime(props.distance);
-                    const store = new StoreRankDTO({...props,imageURL,status,score,reviewCount,reviewContent,wishlist,category,time});
+                    const store = new StoreRankDTO({...props,imageURL,score,reviewCount,reviewContent,wishlist,category,time});
                     return store;
                 })
             )
-            result.push({stores:[...stores],tag:keywords[i]});
+            result[keywords[i]]=stores;
         }
 
         return result;
@@ -154,13 +153,12 @@ class StoreService{
             }
         })
         let result = await Promise.all(stores.map(async(store)=>{
-            const status = await this.getStatus(store.id);
             const score = await this.getAvgScore(store.id);
             const reviewCount = await reviewService.getReviewCount(store.id);
             const category = await this.changeCategory(store.category);
             const time = await this.convertDistanceToTime(store.distance);
 
-            return new StoreSearchDTO({...store,status,score,reviewCount,category,time});
+            return new StoreSearchDTO({...store,score,reviewCount,category,time});
         }))
 
         result = result.sort((a,b)=>{
@@ -189,14 +187,13 @@ class StoreService{
 
             const store = await this.findStoreByID(storeId);
             const category = await this.changeCategory(store.category);
-            const status = await this.getStatus(storeId);
             const score = await this.getAvgScore(storeId);
             const reviewCount = await reviewService.getReviewCount(storeId);
             const reviewSample = await reviewService.findReviewSample(storeId);
             const reviewContent = reviewSample?reviewSample.content:null;
             const rank = await this.getRankByStore(storeId);
             const time = await this.convertDistanceToTime(store.distance);
-            const dto = new StoreWishlistDTO({...store,status,score,reviewCount,reviewContent,rank,category,time});   
+            const dto = new StoreWishlistDTO({...store,score,reviewCount,reviewContent,rank,category,time});   
             storeList.push(dto);     
         }
         return storeList;
@@ -245,7 +242,6 @@ class StoreService{
         const categorys = {'한식':[],'중식':[],'양식':[],'일식':[],'분식':[],'아시아':[],'패스트푸드':[],'레스토랑':[],'카페/디저트':[],'술집':[]};
 
         for(const store of stores){
-            const status = await this.getStatus(store.id);
             const score = await this.getAvgScore(store.id);
             const reviewCount = await reviewService.getReviewCount(store.id);
             const reviewSample = await reviewService.findReviewSample(store.id);
@@ -253,7 +249,7 @@ class StoreService{
             const isWishlist = await this.checkWishlist(store.id);
             const rank = await this.getRankByStore(store.id);
             const time = await this.convertDistanceToTime(store.distance);
-            const dto = new StoreCategoryDTO({...store,status,score,reviewCount,reviewContent,isWishlist,rank,time});
+            const dto = new StoreCategoryDTO({...store,score,reviewCount,reviewContent,isWishlist,rank,time});
             
             categorys[await this.changeCategory(store.category)].push(dto);
         }
@@ -383,14 +379,7 @@ class StoreService{
        
         let details = [];
         await Promise.all(stores.map(async (store)=>{
-            const isWishlist = await this.checkWishlist(userId,store.id);
-
-            if(isOpen){
-                const status = await this.getStatus(store.id);
-                if(!status){
-                    return;
-                }
-            }    
+            const isWishlist = await this.checkWishlist(userId,store.id); 
             details.push(new StoreMapDTO({...store, isWishlist}));
         }))
 
@@ -401,7 +390,6 @@ class StoreService{
     async getStoreOnMap(storeId){
         const store = await this.findStoreByID(storeId);
         const category = await this.changeCategory(store.category);
-        const status = await this.getStatus(storeId);
         const score = await this.getAvgScore(storeId);
         const reviewCount = await reviewService.getReviewCount(storeId);
         const reviewSample = await reviewService.findReviewSample(storeId);
@@ -409,7 +397,7 @@ class StoreService{
         const reviewImage = reviewSample?reviewSample.reviewImages[0]:null;
         const rank = await this.getRankByStore(storeId);
         const time = await this.convertDistanceToTime(store.distance);
-        const dto = new StoreDetailMapDTO({...store,status,score,reviewCount,reviewContent,reviewImage,rank,category,time});   
+        const dto = new StoreDetailMapDTO({...store,score,reviewCount,reviewContent,reviewImage,rank,category,time});   
         return dto;
     }
 
@@ -444,13 +432,12 @@ class StoreService{
         }
         
         const details = await Promise.all(stores.map(async(store)=>{
-            const status = await this.getStatus(store.id);
             const score = await this.getAvgScore(store.id);
             const reviewCount = await reviewService.getReviewCount(store.id);
             const category = await this.changeCategory(store.category);
             const time = await this.convertDistanceToTime(store.distance);
 
-            return new StoreRecommendDTO({...store,status,score,reviewCount,category,time});
+            return new StoreRecommendDTO({...store,score,reviewCount,category,time});
         })) 
 
         return details;
@@ -467,7 +454,6 @@ class StoreService{
 
         const details = await Promise.all(storeIds.map(async(storeId)=>{
             const store = await this.findStoreByID(storeId);
-            const status = await this.getStatus(storeId);
             const score = await this.getAvgScore(storeId);
             const reviewCount = await reviewService.getReviewCount(storeId);
             const reviewSample = await reviewService.findReviewSample(storeId);
@@ -477,7 +463,7 @@ class StoreService{
             const category = await this.changeCategory(store.category);
             const time = await this.convertDistanceToTime(store.distance);
 
-            return new StoreReviewedDTO({...store,status,score,reviewCount,reviewContent,rank,isWishlist,category,time})
+            return new StoreReviewedDTO({...store,score,reviewCount,reviewContent,rank,isWishlist,category,time})
         }))
 
         return details;
@@ -487,18 +473,11 @@ class StoreService{
     async getStoreDetail(storeId){
         const store = await this.findStoreByID(storeId);
         const category = await this.changeCategory(store.category);
-        const status = await this.getStatus(storeId);
         const time = await this.convertDistanceToTime(store.distance);
-
-        const days = ['sunClose','monClose','tueClose','wedClose','thuClose','friClose','satClose'];
-        const today = days[new Date().getDay()];
-        let closeTime = null;
-        const businessHour = await this.getBussinessHourByStore(storeId);
-        if(businessHour)closeTime = businessHour[today];
         const keywords = await this.getRankByStore(storeId);
         const tags = await this.findTagByStore(storeId);
 
-        return new StoreDetailDTO({...store,status,closeTime,keywords,tags,category,time});
+        return new StoreDetailDTO({...store,keywords,tags,category,time});
     }
 
 
@@ -527,15 +506,6 @@ class StoreService{
         }else{
             return "10분+";
         }
-    }
-
-    async getBussinessHourByStore(storeId){
-        const time = await database.businessHour.findUnique({
-            where:{
-                storeId:storeId,
-            }
-        });
-        return time;
     }
 
     async getKeywordCount(keyword,stores){
@@ -592,43 +562,6 @@ class StoreService{
             },
         })
         return data;
-    }
-
-    async getStatus(storeId){
-        const data = await database.businessHour.findFirst({
-            where:{
-                storeId:storeId,
-            },
-        });
-        if(!data)return null;
-        const week = [['sunOpen','sunClose'],['monOpen','monClose'],['tueOpen','tueClose'], ['wedOpen','wedClose'],
-        ['thuOpen','thuClose'], ['friOpen','friClose'], ['satOpen','satClose']];
-        
-        const today = new Date();   
-        const weekday = today.getDay();
-        const open = Number(data[week[weekday][0]].replace(':',''));
-        const close = Number(data[week[weekday][1]].replace(':',''));
-
-        let preClose,preOpen;
-        if(weekday===0){
-            preOpen = Number(data[week[6][0]].replace(':',''));
-            preClose = Number(data[week[6][1]].replace(':',''));
-        }else{
-            preOpen = Number(data[week[weekday-1][0]].replace(':',''));
-            preClose = Number(data[week[weekday-1][1]].replace(':',''));
-        }
-        
-        const now = Number(String(today.getHours()) + String(today.getMinutes()));
-
-        if(open<now&&close>now){
-            return true;
-        }
-        else if(preClose<preOpen&&preClose>now){
-            return true;
-        }
-        else{
-            return false;
-        }
     }
 
     async getAvgScore(storeId){

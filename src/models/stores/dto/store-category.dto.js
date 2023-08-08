@@ -2,7 +2,6 @@ export class StoreCategoryDTO{
     storeId;
     name;
     rank;
-    status;
     score;
     reviewCount;
     time;
@@ -16,7 +15,6 @@ export class StoreCategoryDTO{
         this.time = props.time;
         this.imageUrl = props.imageUrl;
         this.rank = props.rank;
-        this.status = props.status;
         this.score = props.score;
         this.reviewCount = props.reviewCount;
         this.reviewContent = props.reviewContent;
