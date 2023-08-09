@@ -1,14 +1,10 @@
 import { Router, response } from "express";
 import { AuthService } from "../service";
 import { LoginDTO, RegisterDTO } from "../dto";
-import { redisClient, getAppleToken } from "../../../utils"
+import { redisClient, getAppleToken, Kakao } from "../../../utils"
 import { UserService } from "../../users/service";
 import { imageUploader } from "../../../middleware"
-import AppleAuth from "apple-auth";
-import { appleKey } from "../../../utils";
-import fs from "fs";
 import jwt from "jsonwebtoken";
-import database from "../../../database";
 
 class AuthController {
     authService;
@@ -19,6 +15,7 @@ class AuthController {
         this.router = Router();
         this.authService = new AuthService();
         this.UserService = new UserService();
+        this.kakao = new Kakao();
         this.init();
     }
 
@@ -34,6 +31,8 @@ class AuthController {
         this.router.get("/searchUniversities", this.searchUniversities.bind(this));
 
         this.router.post("/apple-login", this.appleLogin.bind(this));
+        this.router.get("/kakao-authCode", this.getAuthCode.bind(this));
+        this.router.post("/kakao-login", this.kakaoLogin.bind(this));
     }
 
     // 회원가입
@@ -226,6 +225,36 @@ class AuthController {
             const result = await this.authService.getAppleInfo(id_token);
             
             res.status(200).json({result});
+        } catch(err) {
+            next(err);
+        }
+    }
+
+    // 카카오 인가 코드 받기
+    async getAuthCode(req, res, next) {
+        try{
+            const url = this.kakao.getAuthCodURL();
+
+            res.status(200).json({
+                url,
+            });
+        } catch(err) {
+            next(err);
+        }
+    }
+
+    // 카카오 로그인
+    async kakaoLogin(req, res, next) {
+        try {
+            const {code} = req.body;
+
+            const { kakaoAccessToken } = await this.kakao.getToken(code);
+            console.log(kakaoAccessToken);
+
+            // 
+            const result = await this.kakao.getUserData(kakaoAccessToken);
+
+            res.status(200).json({ result });
         } catch(err) {
             next(err);
         }
