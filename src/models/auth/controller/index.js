@@ -1,12 +1,14 @@
 import { Router, response } from "express";
 import { AuthService } from "../service";
 import { LoginDTO, RegisterDTO } from "../dto";
-import { redisClient } from "../../../utils"
+import { redisClient, getAppleToken } from "../../../utils"
 import { UserService } from "../../users/service";
 import { imageUploader } from "../../../middleware"
 import AppleAuth from "apple-auth";
 import { appleKey } from "../../../utils";
 import fs from "fs";
+import jwt from "jsonwebtoken";
+import database from "../../../database";
 
 class AuthController {
     authService;
@@ -31,7 +33,7 @@ class AuthController {
         this.router.post("/password-reset", this.passwordReset.bind(this));
         this.router.get("/searchUniversities", this.searchUniversities.bind(this));
 
-        this.router.post("/apple-login", this.appleSign.bind(this));
+        this.router.post("/apple-login", this.appleLogin.bind(this));
     }
 
     // 회원가입
@@ -42,7 +44,28 @@ class AuthController {
 
             const filePath = process.env.AWS_S3_BUCKET + ".s3." + process.env.AWS_S3_REGION + ".amazonaws.com/" + req.file.key;
             const body = JSON.parse(req.body['dto']);
+            const {id, email } = jwt.verify(body.accessToken, process.env.JWT_KEY);
+            
+            console.log(email, id);
+            if(body.accessToken){
+                const { accessToken, refreshToken } = await this.authService.register(
+                    new RegisterDTO({
+                        id: id,
+                        email: email,
+                        name: body.name,
+                        university_email: body.university_email,
+                        nickname: body.nickname,
+                        imageURL: filePath,
+                        campersId: body.campersId,
+                        password: null,
+                    })
+                );
 
+                res.status(200).json({
+                    accessToken,
+                    refreshToken,
+                  });
+            } else {
             const { accessToken, refreshToken } = await this.authService.register(
                 new RegisterDTO({
                     email: body.email,
@@ -61,6 +84,7 @@ class AuthController {
             accessToken,
             refreshToken,
           });
+        }
         } catch (err) {
           next(err);
         }
@@ -195,35 +219,13 @@ class AuthController {
     }
 
     //애플 로그인
-    async appleSign(req, res, next) {
+    async appleLogin(req, res, next) {
         try{
-
-            const appleAuth = new AppleAuth(appleKey, fs.readFileSync("./AuthKey.p8").toString(), "text");
-            const response = await appleAuth.accessToken(req.body.code);
-
-            // decode our token
-            const idToken = jwt.decode(response.id_token);
+            const { code, id_token } = req.body;
+            const { data } = await getAppleToken(code);
+            const result = await this.authService.getAppleInfo(id_token);
             
-            const user = {};
-            user.id = idToken.sub;
-            const id = user.id;
-
-            //extract email from idToken
-            if(idToken.email) user.email = idToken.email;
-            const email = user.email;
-
-            if(req.body.user) {
-            const { name } = JSON.parse(req.body.user);
-            user.name = name; // name = { firstname: , lastname: }
-            const username = name.lastname + name.firstname;
-            
-            const appleLoginUserInfo = await appleSign(id, username, email);
-
-            // Respond with the user
-            return res.status(200).json({ appleLoginUserInfo })
-
-            };
-
+            res.status(200).json({result});
         } catch(err) {
             next(err);
         }

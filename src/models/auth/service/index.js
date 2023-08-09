@@ -88,6 +88,40 @@ export class AuthService{
         return { accessToken, refreshToken };
     }
 
+    async getAppleInfo(id_token){
+        const { sub: id, email } = (jwt.decode(id_token) ?? {} );
+            if(id) {
+                const userExist = await database.user.findUnique({
+                    where: {
+                        email: email,
+                    },
+                });
+
+                if(!userExist){
+                    const registerAccessToken = jwt.sign({ id:id, email:email }, process.env.JWT_KEY,{
+                        expiresIn:"2h",
+                    });
+
+                    return { registerAccessToken: registerAccessToken };
+                } else{
+                    const accessToken = jwt.sign({ id: userExist.id }, process.env.JWT_KEY,{
+                        expiresIn:"2h",
+                    });
+                    const refreshToken = jwt.sign({ id: userExist.id }, process.env.JWT_KEY,{
+                        expiresIn:"14d",
+                    });
+                    
+                    await redisClient.set(userExist.id, refreshToken);
+                    await redisClient.expire(userExist.id, 60 * 60 * 24 * 14);
+
+                    return {
+                        accessToken: accessToken,
+                        refreshToken: refreshToken,
+                };
+                }
+            }
+    }
+
     // 로그아웃
     async logout(email, accessToken) {
 

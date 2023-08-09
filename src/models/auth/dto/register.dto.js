@@ -36,11 +36,13 @@ export class RegisterDTO{
     }
 
     async hashPassword() {
+        if(this.password){
         const hashedPassword = await bcrypt.hash(
           this.password,
           Number(process.env.PASSWORD_SALT)
         );
     
         return hashedPassword;
+        } else return null;
     }
 }
