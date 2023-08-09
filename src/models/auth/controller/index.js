@@ -147,7 +147,6 @@ class AuthController {
             const { university_email } = req.body;
 
             await this.authService.sendMail(university_email, authNum);
-            console.log(authNum);
             res.status(200).json({message: "메일 전송 성공"});
         } catch (err) {
             next(err);
@@ -249,9 +248,7 @@ class AuthController {
             const {code} = req.body;
 
             const { kakaoAccessToken } = await this.kakao.getToken(code);
-            console.log(kakaoAccessToken);
 
-            // 
             const result = await this.kakao.getUserData(kakaoAccessToken);
 
             res.status(200).json({ result });
