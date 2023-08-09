@@ -58,7 +58,6 @@ export class AuthService{
         const refreshToken = jwt.sign({ id: newUserId }, process.env.JWT_KEY,{
             expiresIn:"14d",
         });
-        console.log({ accessToken, refreshToken });
 
         await redisClient.set(newUserId, refreshToken);
         await redisClient.expire(newUserId, 60 * 60 * 24 * 14);
@@ -128,7 +127,6 @@ export class AuthService{
         const emailExist = await this.userService.checkUserByEmail(email);
         const expiration = await this.getExpiration(accessToken);
 
-        console.log(expiration);
         await redisClient.del(emailExist.id);
         await redisClient.set(accessToken, "logout");
         await redisClient.expire(accessToken, expiration);
