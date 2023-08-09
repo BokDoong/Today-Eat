@@ -2,6 +2,7 @@ import axios from "axios";
 import dotenv from "dotenv";
 import database from "../database";
 import jwt from "jsonwebtoken";
+import { redisClient } from "./redis";
 
 dotenv.config();
 
