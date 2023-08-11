@@ -54,7 +54,7 @@ export class Kakao{
                 Authorization: `Bearer ${token}`,
             },
         });
-    
+
         const userExist = await database.user.findUnique({
             where: {
                 email: data.kakao_account.email,

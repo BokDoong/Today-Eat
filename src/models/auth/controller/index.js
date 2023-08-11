@@ -44,11 +44,11 @@ class AuthController {
             const filePath = process.env.AWS_S3_BUCKET + ".s3." + process.env.AWS_S3_REGION + ".amazonaws.com/" + req.file.key;
             const body = JSON.parse(req.body['dto']);
             
-            if(body.accessToken){
-                const {id, email } = jwt.verify(body.accessToken, process.env.JWT_KEY);
+            if(body.registerAccessToken){
+                const {id, email } = jwt.verify(body.registerAccessToken, process.env.JWT_KEY);
                 const { accessToken, refreshToken } = await this.authService.register(
                     new RegisterDTO({
-                        id: id,
+                        id: id.toString(),
                         email: email,
                         name: body.name,
                         university_email: body.university_email,
