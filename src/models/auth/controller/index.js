@@ -245,9 +245,9 @@ class AuthController {
     // 카카오 로그인
     async kakaoLogin(req, res, next) {
         try {
-            const {code} = req.body;
+            const {kakaoAccessToken} = req.body;
 
-            const { kakaoAccessToken } = await this.kakao.getToken(code);
+            // const { kakaoAccessToken } = await this.kakao.getToken(code);
 
             const result = await this.kakao.getUserData(kakaoAccessToken);
 
