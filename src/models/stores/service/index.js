@@ -241,7 +241,7 @@ class StoreService{
         const stores = await this.findStoreByCampers(campersId);
         const categorys = {'한식':[],'중식':[],'양식':[],'일식':[],'분식':[],'아시아':[],'패스트푸드':[],'레스토랑':[],'카페/디저트':[],'술집':[]};
 
-        for(const store of stores){
+        await Promise.all(stores.map(async(store)=>{
             const score = await this.getAvgScore(store.id);
             const reviewCount = await reviewService.getReviewCount(store.id);
             const reviewSample = await reviewService.findReviewSample(store.id);
@@ -253,10 +253,10 @@ class StoreService{
             const dto = new StoreCategoryDTO({...store,score,reviewCount,reviewContent,isWishlist,rank,time});
 
             if(!category){
-                continue;
+                return;
             }
             categorys[category].push(dto);
-        }
+        }));
         for(let category in categorys){
             categorys[category] = categorys[category].sort((a,b)=>{
                 if(orderby==="distance"){
@@ -272,7 +272,7 @@ class StoreService{
     }
 
     //지도 페이지 가게 목록
-    async getStoresOnMap(user,distance,keyword,category,isOpen){
+    async getStoresOnMap(user,distance,keyword,category){
         const userId = user.id;
         const campersId = user.campersId;
         const campers = await this.findCampersByID(campersId);
