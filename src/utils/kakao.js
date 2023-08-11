@@ -36,13 +36,11 @@ export class Kakao{
                 },
             }
           );
-        console.log(data);
         // const tokenData = {
 
         //     access_token: data.access_token,
         //     // refresh_token: data.refresh_token,
         //   };
-          console.log(data.access_token);
       
           return { kakaoAccessToken: data.access_token };
     }
