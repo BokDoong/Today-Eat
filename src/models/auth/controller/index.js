@@ -21,6 +21,8 @@ class AuthController {
 
     init() {
         this.router.post("/register", imageUploader.single('image'), this.register.bind(this));
+        this.router.post("/email-validate", this.emailValidation.bind(this));
+        this.router.post("/nickname-validate", this.nicknameValidation.bind(this));
         this.router.post("/login", this.login.bind(this));
         this.router.post("/logout", this.logout.bind(this));
         this.router.post("/refresh",this.refresh.bind(this));
@@ -150,6 +152,49 @@ class AuthController {
             await this.authService.sendMail(university_email, authNum);
             res.status(200).json({message: "메일 전송 성공"});
         } catch (err) {
+            next(err);
+        }
+    }
+
+    // 이메일 중복 검사
+    async emailValidation(req, res, next){
+        try{
+            const { email } = req.body;
+
+            if(!email) throw { status: 409, message:"이메일을 입력해 주세요."};
+
+            const emailPattern = /^[A-Za-z0-9_\.\-]+@[A-Za-z0-9\-]+\.[A-Za-z0-9\-]+/;
+            const isEmailVaild = emailPattern.test(email);
+            
+            if(!isEmailVaild) throw {status: 408, message: "이메일 형식이 아닙니다."};
+
+            const emailExist = await this.UserService.checkUserByEmail(email);
+            if(emailExist) throw { status: 400, message: "이미 가입되어있는 이메일 입니다."};
+
+            res.status(200).json({ message:"이메일 중복 검사 완료"});
+        } catch(err) { 
+            next(err);
+        }
+    }
+
+    //닉네임 중복 검사
+    async nicknameValidation(req, res, next){
+        try{
+            const { nickname } = req.body;
+
+            if(!nickname) throw { status: 409, message:"닉네임을 입력해 주세요."};
+
+            const nicknamePattern = /[~!@#$%^&*()_+|<>?:{}]/;
+            if(nicknamePattern.test(nickname)) throw { status:410, message:"특수문자는 사용 불가능 합니다."};
+
+            if(nickname.length > 8) throw { status: 411, message:"닉네임의 길이는 최대 8자 입니다."};
+
+            const nicknameExist = await this.UserService.checkUserByNickname(nickname);
+            if(nicknameExist) throw { status: 400, message:"이미 존재하는 닉네임입니다."};
+
+            res.status(200).json({ message:"닉네임 중복 검사 완료"});
+
+        } catch(err){
             next(err);
         }
     }

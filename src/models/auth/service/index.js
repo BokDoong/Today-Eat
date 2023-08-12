@@ -23,19 +23,19 @@ export class AuthService{
         const emailExist = await this.userService.checkUserByEmail(props.email);
         if(emailExist) throw { status: 400, message: "이미 가입되어있는 이메일 입니다."};
 
-        const emailPattern = /^[A-Za-z0-9_\.\-]+@[A-Za-z0-9\-]+\.[A-Za-z0-9\-]+/;
-        const isEmailVaild = emailPattern.test(props.email);
+        // const emailPattern = /^[A-Za-z0-9_\.\-]+@[A-Za-z0-9\-]+\.[A-Za-z0-9\-]+/;
+        // const isEmailVaild = emailPattern.test(props.email);
         
-        if(!isEmailVaild) throw {status: 408, message: "이메일 형식이 아닙니다."};
+        // if(!isEmailVaild) throw {status: 408, message: "이메일 형식이 아닙니다."};
 
-        if(!props.nickname) throw { status: 409, message:"닉네임을 입력해 주세요."};
+        // if(!props.nickname) throw { status: 409, message:"닉네임을 입력해 주세요."};
 
-        const nicknamePattern = /[~!@#$%^&*()_+|<>?:{}]/;
-        if(nicknamePattern.test(props.nickname)) throw { status:410, message:"특수문자는 사용 불가능 합니다."};
-        if(props.nickname.length > 8) throw { status: 411, message:"닉네임의 길이는 최대 8자 입니다."};
+        // const nicknamePattern = /[~!@#$%^&*()_+|<>?:{}]/;
+        // if(nicknamePattern.test(props.nickname)) throw { status:410, message:"특수문자는 사용 불가능 합니다."};
+        // if(props.nickname.length > 8) throw { status: 411, message:"닉네임의 길이는 최대 8자 입니다."};
 
-        const nicknameExist = await this.userService.checkUserByNickname(props.nickname);
-        if(nicknameExist) throw { status: 412, message:"이미 존재하는 닉네임입니다."};
+        // const nicknameExist = await this.userService.checkUserByNickname(props.nickname);
+        // if(nicknameExist) throw { status: 412, message:"이미 존재하는 닉네임입니다."};
 
         if(props.university_email){
             const uniEmailExist = await this.userService.checkUserByUniEmail(props.university_email);
