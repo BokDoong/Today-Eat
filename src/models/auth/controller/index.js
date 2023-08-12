@@ -38,10 +38,12 @@ class AuthController {
     // 회원가입
     async register(req, res, next) {
         try{
-            // const body = req.body;
-            if (!req.file) throw { status: 401, message: "file이 없습니다." };
+            // if (!req.file) throw { status: 401, message: "file이 없습니다." };
+            let filePath = null;
 
-            const filePath = process.env.AWS_S3_BUCKET + ".s3." + process.env.AWS_S3_REGION + ".amazonaws.com/" + req.file.key;
+            if(req.file){
+                filePath = process.env.AWS_S3_BUCKET + ".s3." + process.env.AWS_S3_REGION + ".amazonaws.com/" + req.file.key;
+            }
             const body = JSON.parse(req.body['dto']);
             
             if(body.registerAccessToken){
