@@ -162,10 +162,13 @@ class AuthController {
                     res.status(500).json({ message: "Redis에서 인증번호 가져오기 오류" });
                 } else {
                 if (authNum === storedAuthNum) {
-                    if(req.user.id){
+                    if(req.user){
                         this.UserService.updateEmailAuthStatus(req.user.id, university_email);
+
+                        res.status(200).json({message:"학교 이메일 인증 성공"})
+                    } else{
+                    res.status(201).json({ message: "학교 이메일 인증 성공 , 인증 상태 변경"});
                     }
-                    res.status(200).json({ message: "인증 성공"});
                 } else {
                     res.status(404).json({ message: "인증번호가 일치하지 않습니다." });
                 }
