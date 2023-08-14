@@ -239,7 +239,9 @@ class StoreService{
         const userId= user.id;
         const campersId = user.campersId;
         const stores = await this.findStoreByCampers(campersId);
-        const categorys = {'한식':[],'중식':[],'양식':[],'일식':[],'분식':[],'아시아':[],'패스트푸드':[],'레스토랑':[],'카페/디저트':[],'술집':[]};
+        const categoryList = ['한식','중식','양식','일식','분식','아시아','패스트푸드','레스토랑','카페/디저트','술집'];
+        let categorys = {};
+        categoryList.forEach((category)=>categorys[category] = []);
 
         await Promise.all(stores.map(async(store)=>{
             const score = await this.getAvgScore(store.id);
