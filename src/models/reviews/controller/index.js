@@ -24,6 +24,8 @@ class ReviewController{
         this.router.post("/",imageUploader.array('images'),this.createReview.bind(this));
         this.router.put("/:id",imageUploader.array('images'),this.updateReview.bind(this));
         this.router.delete("/:id",this.deleteReview.bind(this));
+
+        this.router.get("/images/:id",this.getReviewImagesByStore.bind(this));
     }
     
     //리뷰 작성
@@ -140,6 +142,18 @@ class ReviewController{
             const reviews = await this.reviewService.getReviewsByStore(storeId,orderby,skip,take);
 
             res.status(200).json(reviews);
+        }catch(err){
+            next(err);
+        }
+    }
+
+    //가게별 리뷰 이미지 조회
+    getReviewImagesByStore = async (req,res,next) => {
+        try{
+            if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
+            const storeId = req.params.id;
+            const images = await this.reviewService.getReviewImagesByStore(storeId);
+            res.status(200).json(images.URLs);
         }catch(err){
             next(err);
         }
