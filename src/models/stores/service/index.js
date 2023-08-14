@@ -482,8 +482,9 @@ class StoreService{
         const time = await this.convertDistanceToTime(store.distance);
         const keywords = await this.getRankByStore(storeId);
         const tags = await this.findTagByStore(storeId);
+        const imageCount = (await reviewService.getReviewImagesByStore(storeId)).count;
 
-        return new StoreDetailDTO({...store,keywords,tags,category,time});
+        return new StoreDetailDTO({...store,keywords,tags,category,time,imageCount});
     }
 
 
