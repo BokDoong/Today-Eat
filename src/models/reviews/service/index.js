@@ -340,6 +340,23 @@ class ReviewService{
         
     }
 
+    //가게별 리뷰 이미지 조회
+    async getReviewImagesByStore(storeId){
+        const images = await database.reviewImage.findMany({
+            where:{
+                review:{
+                    store:{
+                        id:storeId,
+                    }
+                }
+            }
+        });
+        const result = images.map((image)=>{
+            return image.imageUrl;
+        })
+        return {count:result.length,URLs:result};
+    }
+
 
     /*-----------------------------------------------------------------------------------------------------*/
     /*-----------------------------------------------------------------------------------------------------*/
