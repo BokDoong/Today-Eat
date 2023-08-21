@@ -403,7 +403,8 @@ class StoreService{
         const reviewImage = reviewSample?reviewSample.reviewImages[0]:null;
         const rank = await this.getRankByStore(storeId);
         const time = await this.convertDistanceToTime(store.distance);
-        const dto = new StoreDetailMapDTO({...store,score,reviewCount,reviewContent,reviewImage,rank,category,time});   
+        const isWishlist = await this.checkWishlist(store.id);
+        const dto = new StoreDetailMapDTO({...store,score,reviewCount,reviewContent,reviewImage,rank,category,time,isWishlist});   
         return dto;
     }
 
