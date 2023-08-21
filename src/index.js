@@ -47,12 +47,12 @@ import {writeTimeLog} from "./utils"
   })
 
   // Port번호 8000 설정
-  app.listen(8000, () => {
+  app.listen(8000, async () => {
     console.log("Server's started!!");
-    storeService.updateRank();
+    await storeService.updateRank();
     writeTimeLog();
-    schedule.scheduleJob('0 0 0 * *', () => {
-      storeService.updateRank();
+    schedule.scheduleJob('0 0 0 * *',async () => {
+      await storeService.updateRank();
       writeTimeLog();
     })
   })

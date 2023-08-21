@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { storeService } from "../service";
 import { UserService } from "../../users/service";
+import { writeTimeLog } from "../../../utils"
 
 class StoreController{
     router;
@@ -15,6 +16,7 @@ class StoreController{
     }
 
     init(){
+        this.router.get("/rank-refresh",this.refreshRank.bind(this));
         this.router.get("/rank-sample",this.getRankSample.bind(this));
         this.router.get("/rank",this.getRank.bind(this));
         this.router.get("/category",this.getStoreByCategory.bind(this));
@@ -32,6 +34,16 @@ class StoreController{
         this.router.get("/:id",this.getStoreDetail.bind(this));
     }
 
+    refreshRank = async (req,res,next) => {
+        try{
+            await this.storeService.updateRank();
+            writeTimeLog();
+
+            res.status(200).json();
+        }catch(err){
+            next(err);
+        }
+    }
 
     //랭킹 샘플 조회
     getRankSample = async (req,res,next) => {
