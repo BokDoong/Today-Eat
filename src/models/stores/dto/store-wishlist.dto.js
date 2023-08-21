@@ -7,6 +7,7 @@ export class StoreWishlistDTO{
     time;
     imageUrl;
     reviewContent;
+    category;
 
     constructor(props){
         this.storeId = props.id;
@@ -17,5 +18,6 @@ export class StoreWishlistDTO{
         this.score = props.score;
         this.reviewCount = props.reviewCount;
         this.reviewContent = props.reviewContent;
+        this.category = props.category;
     }
 }
