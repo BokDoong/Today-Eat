@@ -85,7 +85,8 @@ class StoreService{
                     const isWishlist = await this.checkWishlist(userId,id);
                     const category = await this.changeCategory(props.category);
                     const time = await this.convertDistanceToTime(props.distance);
-                    const store = new StoreCardDTO({...props,imageURL,tags,isWishlist,category,time});
+                    const score = await this.getAvgScore(props.id);
+                    const store = new StoreCardDTO({...props,imageURL,tags,isWishlist,category,time,score});
                     return store;
                 })
             )
@@ -582,7 +583,7 @@ class StoreService{
             }
         })
         if(!data._avg.score)return 0;
-        return data._avg.score.toFixed(1);
+        return Number(data._avg.score.toFixed(1));
     }
 
 

@@ -6,6 +6,7 @@ export class StoreCardDTO{
     tags;
     isWishlist;
     imageURL;
+    score;
 
     constructor(props) {
         this.id = props.id;
@@ -15,6 +16,7 @@ export class StoreCardDTO{
         this.tags = props.tags;
         this.isWishlist = props.isWishlist;
         this.imageURL = props.imageURL;
+        this.score = props.score;
     }
     
 }
