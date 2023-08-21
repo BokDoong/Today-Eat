@@ -8,6 +8,7 @@ export class StoreCategoryDTO{
     imageUrl;
     reviewContent;
     isWishlist;
+    category;
 
     constructor(props){
         this.storeId = props.id;
@@ -19,5 +20,6 @@ export class StoreCategoryDTO{
         this.reviewCount = props.reviewCount;
         this.reviewContent = props.reviewContent;
         this.isWishlist = props.isWishlist;
+        this.category = props.category;
     }
 }

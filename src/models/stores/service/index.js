@@ -252,7 +252,7 @@ class StoreService{
             const rank = await this.getRankByStore(store.id);
             const time = await this.convertDistanceToTime(store.distance);
             const category = await this.changeCategory(store.category);
-            const dto = new StoreCategoryDTO({...store,score,reviewCount,reviewContent,isWishlist,rank,time});
+            const dto = new StoreCategoryDTO({...store,category,score,reviewCount,reviewContent,isWishlist,rank,time});
 
             if(!category){
                 return;
