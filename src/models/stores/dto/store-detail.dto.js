@@ -10,6 +10,8 @@ export class StoreDetailDTO{
     address;
     time;
     imageCount;
+    x;
+    y;
 
     constructor(props) {
         this.storeId = props.Id;
@@ -23,6 +25,8 @@ export class StoreDetailDTO{
         this.keywords = props.keywords;
         this.tags = props.tags;
         this.imageCount = props.imageCount;
+        this.x = props.x;
+        this.y = props.y;
     }
     
 }

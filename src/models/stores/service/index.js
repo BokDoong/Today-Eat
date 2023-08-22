@@ -480,13 +480,15 @@ class StoreService{
     //가게 상세페이지
     async getStoreDetail(storeId){
         const store = await this.findStoreByID(storeId);
+        const x = store.x;
+        const y = store.y;
         const category = await this.changeCategory(store.category);
         const time = await this.convertDistanceToTime(store.distance);
         const keywords = await this.getRankByStore(storeId);
         const tags = await this.findTagByStore(storeId);
         const imageCount = (await reviewService.getReviewImagesByStore(storeId)).count;
 
-        return new StoreDetailDTO({...store,keywords,tags,category,time,imageCount});
+        return new StoreDetailDTO({...store,keywords,tags,category,time,imageCount,x,y});
     }
 
 
