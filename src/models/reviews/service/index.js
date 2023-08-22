@@ -218,6 +218,15 @@ class ReviewService{
 
     //리뷰 좋아요
     async reviewLike(userId,reviewId,isLike){
+        const checkLike = await database.reviewLike.findFirst({
+            where:{
+                userId:userId,
+                reviewId:reviewId
+            }
+        });
+        if(checkLike&&isLike) throw{status:409,message:"이미 좋아요한 리뷰입니다."};
+        if(!checkLike&&!isLike) throw{status:404,message:"좋아요하지 않은 리뷰입니다."};
+
         if(isLike){
             await database.reviewLike.create({
                 data:{
@@ -255,10 +264,12 @@ class ReviewService{
             }));
             const likeCount = (await this.findLikeByReview(review.id)).length;
             const createdDate = await this.getCreatedDate(review.createdAt);
-            const nickname = (await this.userService.findUserById(userId)).nickname;
+            const user = await this.userService.findUserById(userId);
+            const nickname = user.nickname;
+            const userImage = user.imageURL;
             let reviewImages = await this.findReviewImagesByReviewId(review.id);
             reviewImages = reviewImages.map((image)=>image.imageUrl);
-            return new MyReviewDTO({...review,tags,likeCount,createdDate,nickname,reviewImages});
+            return new MyReviewDTO({...review,tags,likeCount,createdDate,nickname,reviewImages,userImage});
         }))
 
         return details;
@@ -330,9 +341,11 @@ class ReviewService{
         
         let details = [];
         for(const review of reviews){
-            const nickname = (await this.userService.findUserById(review.userId)).nickname;
+            const user = await this.userService.findUserById(review.userId);
+            const nickname = user.nickname;
+            const userImage = user.imageURL;
             const createdDate = await this.getCreatedDate(review.createdAt);
-            details.push(new ReviewDTO({...review,nickname,createdDate}));
+            details.push(new ReviewDTO({...review,nickname,createdDate,userImage}));
             
         }
 

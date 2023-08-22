@@ -7,6 +7,7 @@ export class MyReviewDTO{
     images;
     likeCount;
     createdDate;
+    userImage;
 
     constructor(props){
         this.id = props.id;
@@ -17,5 +18,6 @@ export class MyReviewDTO{
         this.likeCount = props.likeCount;
         this.createdDate = props.createdDate;
         this.nickname = props.nickname;
+        this.userImage = props.userImage;
     }
 }
