@@ -240,7 +240,7 @@ class StoreService{
         const userId= user.id;
         const campersId = user.campersId;
         const stores = await this.findStoreByCampers(campersId);
-        const categoryList = ['한식','중식','양식','일식','분식','아시아','패스트푸드','레스토랑','카페/디저트','술집'];
+        const categoryList = ['한식','중식','양식','일식','분식','아시아','패스트푸드','레스토랑','카페','술집'];
         let categorys = {};
         categoryList.forEach((category)=>categorys[category] = []);
 
@@ -631,7 +631,7 @@ class StoreService{
         }else if(category=="뷔페"||category=="패밀리레스토랑"){
             return '레스토랑';
         }else if(category=="카페"||category=="간식"||category=="샐러드"){
-            return '카페/디저트';
+            return '카페';
         }else if(category=="술집"){
             return '술집';
         }else{
