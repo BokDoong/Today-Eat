@@ -12,6 +12,7 @@ export class StoreDetailDTO{
     imageCount;
     x;
     y;
+    reviewCount;
 
     constructor(props) {
         this.storeId = props.Id;
@@ -27,6 +28,7 @@ export class StoreDetailDTO{
         this.imageCount = props.imageCount;
         this.x = props.x;
         this.y = props.y;
+        this.reviewCount = props.reviewCount;
     }
     
 }

@@ -487,8 +487,9 @@ class StoreService{
         const keywords = await this.getRankByStore(storeId);
         const tags = await this.findTagByStore(storeId);
         const imageCount = (await reviewService.getReviewImagesByStore(storeId)).count;
+        const reviewCount = await reviewService.getReviewCount(storeId);
 
-        return new StoreDetailDTO({...store,keywords,tags,category,time,imageCount,x,y});
+        return new StoreDetailDTO({...store,keywords,tags,category,time,imageCount,x,y,reviewCount});
     }
 
 
