@@ -1,8 +1,10 @@
-//import { 컨트롤러명 } from "./auth";
-//import { 컨트롤러명 } from "./stores";
-//import { 컨트롤러명 } from "./users";
+import { UserController, UserSwagger } from "./users";
+import { AuthController } from "./auth";
+import { StoreController, StoreSwagger } from "./stores";
+import { ReviewController,ReviewSwagger } from "./reviews";
 
-export const Controllers = [];
+
+export const Controllers = [UserController, AuthController, StoreController, ReviewController];
 export const Swaggers = {
-
+  UserSwagger, ReviewSwagger, StoreSwagger
 };

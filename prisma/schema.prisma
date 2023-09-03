@@ -14,11 +14,14 @@ model User{
   id String @id @default(uuid())
 
   email String @unique
-  password String
-  nickname String
-  classOf String
+  university_email String? @unique
+  password String?
+  name String
+  nickname String @unique
   imageURL String?
-  phoneNumber String @db.Char(11)
+  agreement Boolean @default(false)
+
+  isEmailAuth Int @db.TinyInt() @default(0)
 
   campersId String
   campers Campers @relation(fields: [campersId],references: [id])
@@ -27,6 +30,46 @@ model User{
   wishLists WishList[]
   refreshToken RefreshToken?
   reviews Review[]
+  inquirys Inquiry[]
+}
+
+model Inquiry{
+  id String @id @default(uuid())
+  
+  title String @db.VarChar(30)
+  content String @db.Text
+  createdAt DateTime @default(now())
+  status Inquiry_Status
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade) 
+  
+  inquiryImages InquiryImage[]
+  inquiryResponse InquiryResponse?
+}
+
+// WAITING: 답변대기, DONE: 답변완료
+enum Inquiry_Status {
+  WAITING
+  DONE
+}
+
+model InquiryImage {
+  id String @id @default(uuid())
+
+  imageUrl String @db.LongText
+
+  inquiryId String
+  inquiry Inquiry @relation(fields: [inquiryId], references: [id], onUpdate: Cascade, onDelete: Cascade) 
+}
+
+model InquiryResponse {
+  id String @id @default(uuid())
+
+  content String @db.Text
+
+  inquiryId String @unique
+  inquiry Inquiry @relation(fields: [inquiryId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 }
 
 model Campers{
@@ -41,6 +84,7 @@ model Campers{
   
   users User[]
   stores Store[]
+  tagRanks TagRank[]
 }
 
 model University{
@@ -52,31 +96,27 @@ model University{
 }
 
 model Store{
-  id String @id @default(uuid())
+  id String @id @default(uuid()) @unique
 
   name String @db.VarChar(100)
   address String
-  phoneNumber String @db.Char(11)
-  opening_time DateTime
-  closing_time DateTime
-  status Status
+  phoneNumber String @db.VarChar(13)
   x Float @db.Double
   y Float @db.Double
+  distance Float @db.Double
+  imageUrl String ?
+  category String
 
   campersId String
   campers Campers @relation(fields: [campersId], references: [ id])
-  categoryId String
-  category Category @relation(fields: [categoryId], references: [ id])
 
   wishLists WishList[]
-  storeImage StoreImage?
-  keywords Keyword[]
   reviews Review[]
-}
+  keywords Keyword[]
+  tags Tag[]
+  tagRanks TagRank[]
 
-enum Status {
-  OPEN
-  CLOSE
+  @@unique([name,campersId])
 }
 
 model Review{
@@ -84,16 +124,16 @@ model Review{
 
   content String @db.Text
   createdAt DateTime @default(now())
-  updatedAt DateTime
   score Float @db.Double
 
   storeId String
   store Store @relation(fields: [storeId],references: [id])
   userId String
-  user User @relation(fields: [userId],references: [id])
+  user User @relation(fields: [userId],references: [id], onUpdate: Cascade, onDelete: Cascade)
 
   reviewLikes ReviewLike[]
   reviewImages ReviewImage[]
+  keywords Keyword[]
   tags Tag[]
 }
 
@@ -106,14 +146,6 @@ model ReviewLike{
   @@id([userId,reviewId])
 }
 
-model Category{
-  id String @id @default(uuid())
-
-  name String @db.VarChar(20)
-
-  stores Store[]
-}
-
 model WishList{
   userId String 
   user User @relation(fields: [userId],references: [id],onUpdate: Cascade,onDelete: Cascade)
@@ -123,14 +155,10 @@ model WishList{
   @@id([userId,storeId])
 }
 
-model StoreImage{
-  storeId String @id
-
-  store Store @relation(fields: [storeId],references: [id],onUpdate: Cascade,onDelete: Cascade)
-}
-
 model ReviewImage{
-  imageUrl String @db.VarChar(200) @unique
+  id String @id @default(uuid())
+
+  imageUrl String @db.LongText
 
   reviewId String
   review Review @relation(fields: [reviewId],references: [id],onUpdate: Cascade,onDelete: Cascade)
@@ -139,10 +167,12 @@ model ReviewImage{
 model Keyword{
   id String @id @default(uuid())
 
-  keyword String @db.VarChar(100)
+  name String @db.VarChar(100)
   
   storeId String
-  store Store @relation(fields: [storeId],references: [id],onUpdate: Cascade,onDelete: Cascade)
+  store Store @relation(fields: [storeId],references: [id])
+  reviewId String
+  review Review @relation(fields: [reviewId],references: [id],onUpdate: Cascade,onDelete: Cascade)
 }
 
 model Tag{
@@ -150,6 +180,8 @@ model Tag{
 
   name String @db.VarChar(50)
 
+  storeId String
+  store Store @relation(fields: [storeId],references: [id])
   reviewId String
   review Review @relation(fields: [reviewId],references: [id],onUpdate: Cascade,onDelete: Cascade)
 }
@@ -163,9 +195,32 @@ model RefreshToken{
   user User @relation(fields: [userId],references: [id],onUpdate: Cascade,onDelete: Cascade) 
 }
 
-model Notice{
+model Notices{
   id String @id @default(uuid())
 
   title String @db.VarChar(50)
-  content String @db.Text
+  content String @db.LongText
+  createdAt DateTime @default(now())
+  type Type
+}
+
+// NOTICE: 공지사항, FAQ: FAQ, TERMS: 이용시 약관, MARKETING: 마켓팅 약관
+enum Type {
+  NOTICE
+  FAQ
+  TERMS
+  MARKETING
+}
+
+model TagRank{
+  tag String
+  rank Int
+  
+  campersId String
+  campers Campers @relation(references: [id],fields: [campersId])
+
+  storeId String
+  store Store @relation(references: [id],fields: [storeId])
+
+  @@id([tag,rank,campersId])
 }

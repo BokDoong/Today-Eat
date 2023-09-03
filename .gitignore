@@ -1,3 +1,6 @@
 node_modules
 
 .env
+
+AuthKey.p8
+log/rankUpdateLog.txt
