@@ -6,6 +6,7 @@ export class StoreSearchDTO{
     score;
     reviewCount;
     imageUrl;
+    distance;
 
     constructor(props) {
         this.id = props.id;
@@ -15,5 +16,6 @@ export class StoreSearchDTO{
         this.time = props.time;
         this.score = props.score;
         this.reviewCount = props.reviewCount;
+        this.distance = props.distance;
     }
 }

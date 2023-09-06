@@ -158,8 +158,9 @@ class StoreService{
             const reviewCount = await reviewService.getReviewCount(store.id);
             const category = await this.changeCategory(store.category);
             const time = await this.convertDistanceToTime(store.distance);
+            const distance = store.distance;
 
-            return new StoreSearchDTO({...store,score,reviewCount,category,time});
+            return new StoreSearchDTO({...store,score,reviewCount,category,time,distance});
         }))
 
         result = result.sort((a,b)=>{
