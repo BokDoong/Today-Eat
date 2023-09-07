@@ -610,6 +610,9 @@ class StoreService{
             },
             where:{
                 storeId:storeId,
+            },
+            orderBy:{
+                rank:"asc",
             }
         });
         return rank;
