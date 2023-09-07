@@ -8,6 +8,7 @@ export class ReviewDTO{
     likeCount;
     content;
     userImage;
+    isLike;
 
     constructor(props) {
         this.reviewId = props.id;
@@ -19,6 +20,7 @@ export class ReviewDTO{
         this.likeCount = props._count.reviewLikes;
         this.content = props.content;
         this.userImage = props.userImage;
+        this.isLike = props.isLike;
     }
     
 }

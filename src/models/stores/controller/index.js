@@ -140,7 +140,7 @@ class StoreController{
             if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
 
             const storeId = req.params.id;
-            const store = await this.storeService.getStoreOnMap(storeId);
+            const store = await this.storeService.getStoreOnMap(req.user.id,storeId);
 
             res.status(200).json(store);
         }catch(err){
@@ -202,7 +202,7 @@ class StoreController{
             if (!req.user) throw { status: 401, message: "로그인을 진행해주세요." };
 
             const storeId = req.params.id;
-            const detail = await this.storeService.getStoreDetail(storeId);
+            const detail = await this.storeService.getStoreDetail(req.user.id,storeId);
 
             res.status(200).json(detail);
         }catch(err){

@@ -344,8 +344,9 @@ class ReviewService{
             const user = await this.userService.findUserById(review.userId);
             const nickname = user.nickname;
             const userImage = user.imageURL;
+            const isLike = await this.checkLike(user.id,review.id);
             const createdDate = await this.getCreatedDate(review.createdAt);
-            details.push(new ReviewDTO({...review,nickname,createdDate,userImage}));
+            details.push(new ReviewDTO({...review,nickname,createdDate,userImage,isLike}));
             
         }
 
@@ -500,6 +501,18 @@ class ReviewService{
         })
         return reviews;
     }
+
+    async checkLike(userId,reviewId){
+        const data = await database.reviewLike.findFirst({
+            where:{
+                userId:userId,
+                reviewId:reviewId,
+            }
+        })
+        if(!data)return false;
+        return true;
+    }
+
 }
 
 export const reviewService = new ReviewService();
