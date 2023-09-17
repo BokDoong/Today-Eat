@@ -13,6 +13,7 @@ export class StoreDetailDTO{
     x;
     y;
     reviewCount;
+    isWishlist;
 
     constructor(props) {
         this.storeId = props.Id;
@@ -29,6 +30,7 @@ export class StoreDetailDTO{
         this.x = props.x;
         this.y = props.y;
         this.reviewCount = props.reviewCount;
+        this.isWishlist = props.isWishlist;
     }
     
 }

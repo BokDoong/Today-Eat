@@ -158,8 +158,9 @@ class StoreService{
             const reviewCount = await reviewService.getReviewCount(store.id);
             const category = await this.changeCategory(store.category);
             const time = await this.convertDistanceToTime(store.distance);
+            const distance = store.distance;
 
-            return new StoreSearchDTO({...store,score,reviewCount,category,time});
+            return new StoreSearchDTO({...store,score,reviewCount,category,time,distance});
         }))
 
         result = result.sort((a,b)=>{
@@ -249,7 +250,7 @@ class StoreService{
             const reviewCount = await reviewService.getReviewCount(store.id);
             const reviewSample = await reviewService.findReviewSample(store.id);
             const reviewContent = reviewSample?reviewSample.content:null;
-            const isWishlist = await this.checkWishlist(store.id);
+            const isWishlist = await this.checkWishlist(userId,store.id);
             const rank = await this.getRankByStore(store.id);
             const time = await this.convertDistanceToTime(store.distance);
             const category = await this.changeCategory(store.category);
@@ -394,7 +395,7 @@ class StoreService{
     }
 
     //지도 페이지 가게 정보
-    async getStoreOnMap(storeId){
+    async getStoreOnMap(userId,storeId){
         const store = await this.findStoreByID(storeId);
         const category = await this.changeCategory(store.category);
         const score = await this.getAvgScore(storeId);
@@ -404,7 +405,7 @@ class StoreService{
         const reviewImage = reviewSample?reviewSample.reviewImages[0]:null;
         const rank = await this.getRankByStore(storeId);
         const time = await this.convertDistanceToTime(store.distance);
-        const isWishlist = await this.checkWishlist(store.id);
+        const isWishlist = await this.checkWishlist(userId,store.id);
         const dto = new StoreDetailMapDTO({...store,score,reviewCount,reviewContent,reviewImage,rank,category,time,isWishlist});   
         return dto;
     }
@@ -478,7 +479,7 @@ class StoreService{
     }
     
     //가게 상세페이지
-    async getStoreDetail(storeId){
+    async getStoreDetail(userId,storeId){
         const store = await this.findStoreByID(storeId);
         const x = store.x;
         const y = store.y;
@@ -488,8 +489,10 @@ class StoreService{
         const tags = await this.findTagByStore(storeId);
         const imageCount = (await reviewService.getReviewImagesByStore(storeId)).count;
         const reviewCount = await reviewService.getReviewCount(storeId);
+        const isWishlist = await this.checkWishlist(userId,store.id);
 
-        return new StoreDetailDTO({...store,keywords,tags,category,time,imageCount,x,y,reviewCount});
+
+        return new StoreDetailDTO({...store,keywords,tags,category,time,imageCount,x,y,reviewCount,isWishlist});
     }
 
 
@@ -609,6 +612,9 @@ class StoreService{
             },
             where:{
                 storeId:storeId,
+            },
+            orderBy:{
+                rank:"asc",
             }
         });
         return rank;
