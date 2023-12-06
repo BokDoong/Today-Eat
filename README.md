@@ -18,7 +18,7 @@
 * 개발: 2023.07 ~ 2023.08
 
 ### 🧑‍🤝‍🧑 팀 구성
-<img width="1000" alt="스크린샷 2023-12-05 오후 9 55 12" src="https://github.com/BokDoong/today-eat-backend/assets/102129660/86e92324-3c4a-43e6-86d3-6e9b28c75775">
+<img width="1100" alt="스크린샷 2023-12-05 오후 9 55 12" src="https://github.com/BokDoong/today-eat-backend/assets/102129660/86e92324-3c4a-43e6-86d3-6e9b28c75775">
 
 <br/><br/>
 ## BE Skills
