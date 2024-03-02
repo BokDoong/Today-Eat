@@ -1,4 +1,4 @@
-# 오늘 뭐먹지? - 대학가 맛집 모음 서비스
+# 오늘 뭐먹지? - UMC 전국 연합개발 동아리 4기 프로젝트
 <img width="700" height="500" alt="image" src="https://github.com/BokDoong/today-eat-backend/assets/102129660/211e094c-29b3-4468-82e5-c8f89e2d76ae">
 
 
